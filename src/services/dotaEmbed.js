@@ -67,7 +67,7 @@ function buildStatsEmbed(stats) {
     });
   }
 
-  return embed.setFooter({ text: 'Данные: OpenDota' });
+  return embed.setFooter({ text: 'Данные: АХУЕННЫЙ ВИДЖЕТ ДОТЫ' });
 }
 
 module.exports = { buildStatsEmbed, formatMinutes };
