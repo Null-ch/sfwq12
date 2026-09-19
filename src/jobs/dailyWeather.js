@@ -19,7 +19,7 @@ function scheduleDailyWeather(client) {
         const embed = new EmbedBuilder()
           .setColor(0x00aaff)
           .setTitle('🌤️ Прогноз на сегодня')
-          .setFooter({ text: 'Данные: Open-Meteo' })
+          .setFooter({ text: 'Данные: АХУЕННЫЙ ВИДЖЕТ ПОГОДЫ' })
           .setTimestamp();
 
         for (const { city, forecast, error } of results) {

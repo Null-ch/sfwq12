@@ -42,7 +42,7 @@ module.exports = {
               value: `${forecast.today.description}\nОт ${forecast.today.tempMin}°C до ${forecast.today.tempMax}°C\nВероятность осадков: ${forecast.today.precipitationChance}%\nВетер до ${forecast.today.windMax} км/ч`,
             },
           )
-          .setFooter({ text: 'Данные: Open-Meteo' })
+          .setFooter({ text: 'Данные: АХУЕННЫЙ ВИДЖЕТ ПОГОДЫ' })
           .setTimestamp();
 
         return interaction.editReply({ embeds: [embed] });
@@ -57,7 +57,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setColor(0x00aaff)
       .setTitle('🌤️ Погода')
-      .setFooter({ text: 'Данные: Open-Meteo' })
+      .setFooter({ text: 'Данные: АХУЕННЫЙ ВИДЖЕТ ПОГОДЫ' })
       .setTimestamp();
 
     for (const { city, forecast, error } of results) {
