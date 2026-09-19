@@ -34,5 +34,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY . .
+RUN chmod +x docker-entrypoint.sh
 
-CMD ["node", "src/index.js"]
+# При каждом старте контейнера сначала регистрирует/обновляет слэш-команды
+# в Discord API, потом запускает самого бота - руками "npm run deploy-commands"
+# после каждого деплоя гонять больше не нужно.
+ENTRYPOINT ["./docker-entrypoint.sh"]
