@@ -8,6 +8,9 @@
     "start": "node src/index.js",
     "deploy-commands": "node src/deploy-commands.js"
   },
+  "overrides": {
+    "discord-api-types": "^0.38.55"
+  },
   "dependencies": {
     "@discord-player/extractor": "^7.1.0",
     "@discordjs/opus": "^0.10.0",
