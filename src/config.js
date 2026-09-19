@@ -21,6 +21,10 @@ module.exports = {
   ffmpeg: {
     binaryPath: process.env.FFMPEG_PATH || 'ffmpeg',
   },
+  music: {
+    // Через сколько после конца очереди / когда в канале не осталось людей бот выходит из канала.
+    leaveDelayMs: Number(process.env.MUSIC_LEAVE_DELAY_SECONDS ?? 30) * 1000,
+  },
   weather: {
     channelId: process.env.WEATHER_CHANNEL_ID || null,
     // WEATHER_CITIES - список городов через запятую (новый формат).
@@ -34,5 +38,19 @@ module.exports = {
   },
   dota: {
     defaultAccountId: process.env.DOTA_DEFAULT_ACCOUNT_ID || null,
+    // Канал для ежедневной статистики; если не задан - используется канал погоды.
+    channelId: process.env.DOTA_CHANNEL_ID || process.env.WEATHER_CHANNEL_ID || null,
+    cron: process.env.DOTA_CRON || '0 23 * * *',
+    timezone: process.env.DOTA_TIMEZONE || process.env.WEATHER_TIMEZONE || 'Europe/Moscow',
+    steamApiKey: process.env.STEAM_API_KEY || null,
+    // Напоминание "пора играть": пинг, если за сегодня сыграно меньше minHours часов.
+    alert: {
+      userId: process.env.DOTA_ALERT_USER_ID || null,
+      accountId: process.env.DOTA_ALERT_ACCOUNT_ID || process.env.DOTA_DEFAULT_ACCOUNT_ID || null,
+      minHours: Number(process.env.DOTA_ALERT_MIN_HOURS ?? 2),
+      cron: process.env.DOTA_ALERT_CRON || '0 13 * * *',
+      channelId:
+        process.env.DOTA_ALERT_CHANNEL_ID || process.env.DOTA_CHANNEL_ID || process.env.WEATHER_CHANNEL_ID || null,
+    },
   },
 };

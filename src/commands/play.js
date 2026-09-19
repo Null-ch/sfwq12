@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { useMainPlayer } = require('discord-player');
+const config = require('../config');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -32,9 +33,9 @@ module.exports = {
         nodeOptions: {
           metadata: { textChannel: interaction.channel },
           leaveOnEmpty: true,
-          leaveOnEmptyCooldown: 5 * 60_000,
+          leaveOnEmptyCooldown: config.music.leaveDelayMs,
           leaveOnEnd: true,
-          leaveOnEndCooldown: 5 * 60_000,
+          leaveOnEndCooldown: config.music.leaveDelayMs,
           volume: 50,
           selfDeaf: true,
         },

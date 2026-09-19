@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const { getPlayerSummary } = require('../services/dotaService');
+const { buildStatsEmbed } = require('../services/dotaEmbed');
 const { setLink, getLink } = require('../services/dotaLinks');
 const config = require('../config');
 
@@ -7,40 +8,7 @@ async function replyWithStats(interaction, accountId) {
   await interaction.deferReply();
   try {
     const stats = await getPlayerSummary(accountId);
-
-    const embed = new EmbedBuilder()
-      .setColor(0xa9302a)
-      .setTitle(`Dota 2: ${stats.nickname}`)
-      .setThumbnail(stats.avatar || null)
-      .setURL(stats.profileUrl || null)
-      .addFields(
-        { name: 'Ранг', value: stats.rank, inline: true },
-        {
-          name: 'MMR (оценка)',
-          value: stats.mmrEstimate ? String(stats.mmrEstimate) : 'Скрыт/недоступен',
-          inline: true,
-        },
-        {
-          name: 'Победы / Поражения',
-          value: `${stats.wins}W / ${stats.losses}L (${stats.winrate}%)`,
-          inline: true,
-        },
-      );
-
-    if (stats.lastMatch) {
-      const m = stats.lastMatch;
-      embed.addFields({
-        name: 'Последний матч',
-        value:
-          `${m.won ? '✅ Победа' : '❌ Поражение'} на **${m.heroName}**\n` +
-          `KDA: ${m.kills}/${m.deaths}/${m.assists}, длительность ${m.durationMinutes} мин\n` +
-          `[Матч #${m.matchId}](https://www.opendota.com/matches/${m.matchId})`,
-      });
-    }
-
-    embed.setFooter({ text: 'Данные: OpenDota' });
-
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [buildStatsEmbed(stats)] });
   } catch (error) {
     await interaction.editReply(`❌ ${error.message}`);
   }

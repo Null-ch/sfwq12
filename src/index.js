@@ -8,6 +8,8 @@ const config = require('./config');
 const { YtDlpExtractor } = require('./extractors/YtDlpExtractor');
 const { registerPlayerEvents } = require('./events/playerEvents');
 const { scheduleDailyWeather } = require('./jobs/dailyWeather');
+const { scheduleDailyDota } = require('./jobs/dailyDota');
+const { scheduleDotaAlert } = require('./jobs/dailyDotaAlert');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
@@ -41,6 +43,8 @@ const player = new Player(client);
 
   registerPlayerEvents(client);
   scheduleDailyWeather(client);
+  scheduleDailyDota(client);
+  scheduleDotaAlert(client);
 
   await client.login(config.discord.token);
 })().catch((error) => {
