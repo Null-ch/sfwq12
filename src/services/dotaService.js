@@ -47,12 +47,14 @@ function normalizeAccountId(input) {
   if (urlMatch) return Number(urlMatch[1]);
 
   if (/^\d+$/.test(raw)) {
-    const num = Number(raw);
-    // SteamID64 -> account_id (Steam32)
-    if (num > 76561197960265728) {
-      return num - 76561197960265728;
+    // SteamID64 не помещается в безопасный диапазон Number (2^53-1),
+    // поэтому конвертируем через BigInt, чтобы не терять последние цифры.
+    const big = BigInt(raw);
+    const STEAM64_BASE = 76561197960265728n;
+    if (big > STEAM64_BASE) {
+      return Number(big - STEAM64_BASE);
     }
-    return num;
+    return Number(big);
   }
 
   throw new Error('Не удалось распознать account_id. Передай число или ссылку на профиль OpenDota/Dotabuff.');
