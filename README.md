@@ -8,7 +8,7 @@
 
 ## 1. Требования на сервере
 
-- Node.js 20+ (нужен встроенный `fetch`)
+- Node.js 22+ (встроенный `fetch`; плюс yt-dlp использует Node как JS-рантайм для YouTube, минимум 22)
 - **ffmpeg** — обязателен для воспроизведения звука
 - **yt-dlp** — обязателен для получения аудио с YouTube (это самый живучий инструмент против блокировок YouTube, обновляется чаще всех аналогов)
 
@@ -18,7 +18,7 @@
 
 ```powershell
 winget install Gyan.FFmpeg
-pip install -U yt-dlp
+pip install -U "yt-dlp[default]"
 ```
 
 ## 2. Discord-приложение и токен
@@ -89,11 +89,11 @@ docker compose logs -f
 YouTube регулярно меняет защиту от скрапинга, и yt-dlp обновляется в ответ на это чаще, чем любая JS-библиотека. Если музыка с YouTube вдруг перестала играть — в 95% случаев помогает обновление yt-dlp:
 
 ```bash
-docker compose exec bot pip3 install --break-system-packages -U yt-dlp
+docker compose exec bot pip3 install --break-system-packages -U "yt-dlp[default]"
 docker compose restart bot
 ```
 
-Без Docker: `pip install -U yt-dlp`.
+Без Docker: `pip install -U "yt-dlp[default]"` (extra `default` обязателен — он ставит `yt-dlp-ejs`).
 
 ## 6. Известные ограничения
 

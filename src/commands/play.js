@@ -28,6 +28,7 @@ module.exports = {
 
     try {
       const { track, queue } = await player.play(channel, query, {
+        signal: AbortSignal.timeout(45_000),
         nodeOptions: {
           metadata: { textChannel: interaction.channel },
           leaveOnEmpty: true,

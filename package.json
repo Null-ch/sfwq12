@@ -8,6 +8,9 @@
     "start": "node src/index.js",
     "deploy-commands": "node src/deploy-commands.js"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "overrides": {
     "discord-api-types": "^0.38.55"
   },
@@ -15,6 +18,7 @@
     "@discord-player/extractor": "^7.1.0",
     "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.18.0",
+    "@snazzah/davey": "^0.1.12",
     "discord-player": "^7.1.0",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",

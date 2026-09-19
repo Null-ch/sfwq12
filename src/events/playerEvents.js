@@ -20,6 +20,12 @@ function registerPlayerEvents(client) {
     channel.send({ embeds: [embed] }).catch(() => {});
   });
 
+  player.on('error', (error) => console.error('[player error]', error));
+  player.events.on(GuildQueueEvent.Error, (queue, error) => console.error('[queue error]', error));
+  player.events.on(GuildQueueEvent.Debug, (queue, message) => {
+    if (/connect|voice|dave|ready|disconnect|stream/i.test(message)) console.log('[player debug]', message);
+  });
+
   player.events.on(GuildQueueEvent.PlayerError, (queue, error, track) => {
     console.error(`Ошибка плеера на треке "${track?.title}":`, error);
     const channel = queue.metadata?.textChannel;

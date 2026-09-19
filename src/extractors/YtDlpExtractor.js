@@ -10,12 +10,21 @@ const config = require('../config');
 
 const YOUTUBE_URL_RE = /^(https?:\/\/)?(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//i;
 
+// Общие флаги для всех вызовов yt-dlp.
+// --js-runtimes node: для YouTube yt-dlp требует внешний JS-рантайм, а по умолчанию
+// включён только Deno. Node у нас уже есть в образе.
+function baseArgs() {
+  const args = ['--js-runtimes', 'node'];
+  if (config.ytdlp.cookiesPath) args.push('--cookies', config.ytdlp.cookiesPath);
+  return args;
+}
+
 /**
  * Запускает yt-dlp и собирает stdout как текст (используется для метаданных: -j / --dump-json).
  */
 function runYtDlpJson(args) {
   return new Promise((resolve, reject) => {
-    const proc = spawn(config.ytdlp.binaryPath, args, { windowsHide: true });
+    const proc = spawn(config.ytdlp.binaryPath, [...baseArgs(), ...args], { windowsHide: true });
     let stdout = '';
     let stderr = '';
 
@@ -25,7 +34,9 @@ function runYtDlpJson(args) {
     proc.on('error', reject);
     proc.on('close', (code) => {
       if (code !== 0 && !stdout.trim()) {
-        return reject(new Error(`yt-dlp завершился с кодом ${code}: ${stderr.slice(0, 500)}`));
+        const error = new Error(`yt-dlp завершился с кодом ${code}: ${stderr.slice(0, 500)}`);
+        console.error('[yt-dlp]', error.message);
+        return reject(error);
       }
       resolve(stdout);
     });
@@ -202,6 +213,7 @@ class YtDlpExtractor extends BaseExtractor {
     const proc = spawn(
       config.ytdlp.binaryPath,
       [
+        ...baseArgs(),
         url,
         '-f',
         'bestaudio[acodec!=none]/bestaudio/best',
@@ -233,6 +245,7 @@ class YtDlpExtractor extends BaseExtractor {
     });
     proc.once('close', (code) => {
       if (code !== 0 && code !== null) {
+        console.error(`[yt-dlp stream] код ${code}: ${stderr.slice(-500)}`);
         proc.stdout.emit('error', new Error(`yt-dlp завершился с кодом ${code}: ${stderr.slice(-500)}`));
       }
     });

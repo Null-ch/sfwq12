@@ -16,6 +16,7 @@ module.exports = {
   },
   ytdlp: {
     binaryPath: process.env.YTDLP_PATH || 'yt-dlp',
+    cookiesPath: process.env.YTDLP_COOKIES || null,
   },
   ffmpeg: {
     binaryPath: process.env.FFMPEG_PATH || 'ffmpeg',
