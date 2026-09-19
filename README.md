@@ -41,7 +41,7 @@ cp .env.example .env
 - `DISCORD_TOKEN` — токен из шага выше
 - `DISCORD_GUILD_ID` — ID твоего сервера (ПКМ по серверу → Copy Server ID, нужен Developer Mode в настройках Discord). На этапе разработки это даёт мгновенное обновление слэш-команд вместо ожидания до часа при глобальной регистрации.
 - `WEATHER_CHANNEL_ID` — ID канала для ежедневного прогноза
-- `WEATHER_CITY`, `WEATHER_CRON`, `WEATHER_TIMEZONE` — город/время/таймзона
+- `WEATHER_CITIES`, `WEATHER_CRON`, `WEATHER_TIMEZONE` — города (через запятую)/время/таймзона
 - `DOTA_DEFAULT_ACCOUNT_ID` — опционально, твой account_id по умолчанию
 
 Зарегистрируй слэш-команды и запусти бота:
@@ -61,8 +61,10 @@ npm start
 - `/volume level:<0-100>`
 
 **Погода**
-- `/weather city:<город>` — прогноз по запросу (город опционален, иначе берётся `WEATHER_CITY`)
-- Ежедневный автопост в `WEATHER_CHANNEL_ID` в момент, заданный `WEATHER_CRON`
+- `/weather city:<город>` — прогноз по одному городу (подробная карточка)
+- `/weather city:<город1, город2, ...>` — сводка сразу по нескольким городам через запятую
+- `/weather` без параметров — прогноз по городам из `WEATHER_CITIES`
+- Ежедневный автопост в `WEATHER_CHANNEL_ID` в момент, заданный `WEATHER_CRON`, сразу по всем городам из `WEATHER_CITIES`
 
 **Dota 2**
 - `/dota link account_id:<id или ссылка>` — привязать свой профиль к своему Discord-аккаунту (один раз)

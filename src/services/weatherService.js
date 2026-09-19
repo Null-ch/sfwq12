@@ -92,4 +92,18 @@ async function getDailyForecast(city) {
   };
 }
 
-module.exports = { getDailyForecast };
+/**
+ * Прогноз сразу для нескольких городов. Ошибка по одному городу (например,
+ * опечатка в названии) не должна ронять остальные - поэтому Promise.allSettled.
+ */
+async function getForecastsForCities(cities) {
+  const results = await Promise.allSettled(cities.map((city) => getDailyForecast(city)));
+
+  return results.map((result, i) => ({
+    city: cities[i],
+    forecast: result.status === 'fulfilled' ? result.value : null,
+    error: result.status === 'rejected' ? result.reason.message : null,
+  }));
+}
+
+module.exports = { getDailyForecast, getForecastsForCities };

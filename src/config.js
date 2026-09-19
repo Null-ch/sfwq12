@@ -22,7 +22,12 @@ module.exports = {
   },
   weather: {
     channelId: process.env.WEATHER_CHANNEL_ID || null,
-    city: process.env.WEATHER_CITY || 'Moscow',
+    // WEATHER_CITIES - список городов через запятую (новый формат).
+    // WEATHER_CITY - старый формат с одним городом, оставлен для совместимости.
+    cities: (process.env.WEATHER_CITIES || process.env.WEATHER_CITY || 'Moscow')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean),
     cron: process.env.WEATHER_CRON || '0 8 * * *',
     timezone: process.env.WEATHER_TIMEZONE || 'Europe/Moscow',
   },
