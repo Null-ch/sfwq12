@@ -85,7 +85,7 @@ docker compose logs -f
 YouTube регулярно меняет защиту от скрапинга, и yt-dlp обновляется в ответ на это чаще, чем любая JS-библиотека. Если музыка с YouTube вдруг перестала играть — в 95% случаев помогает обновление yt-dlp:
 
 ```bash
-docker compose exec bot pip3 install -U yt-dlp
+docker compose exec bot pip3 install --break-system-packages -U yt-dlp
 docker compose restart bot
 ```
 
