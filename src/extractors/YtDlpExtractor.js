@@ -1,62 +1,21 @@
-const { spawn } = require('child_process');
-const {
-  BaseExtractor,
-  QueryType,
-  Track,
-  Playlist,
-  Util,
-} = require('discord-player');
-const config = require('../config');
+const { BaseExtractor, QueryType, Track, Playlist, Util } = require('discord-player');
+const { createYtDlp } = require('./ytdlp');
 
 const YOUTUBE_URL_RE = /^(https?:\/\/)?(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\//i;
+const PLAYLIST_PARAM_RE = /[?&]list=/;
 
-// Общие флаги для всех вызовов yt-dlp.
-// --js-runtimes node: для YouTube yt-dlp требует внешний JS-рантайм, а по умолчанию
-// включён только Deno. Node у нас уже есть в образе.
-function baseArgs() {
-  const args = ['--js-runtimes', 'node'];
-  if (config.ytdlp.cookiesPath) args.push('--cookies', config.ytdlp.cookiesPath);
-  return args;
-}
+const SEARCH_RESULTS = 5;
+const PLAYLIST_LIMIT = 100;
 
-/**
- * Запускает yt-dlp и собирает stdout как текст (используется для метаданных: -j / --dump-json).
- */
-function runYtDlpJson(args) {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(config.ytdlp.binaryPath, [...baseArgs(), ...args], { windowsHide: true });
-    let stdout = '';
-    let stderr = '';
-
-    proc.stdout.on('data', (chunk) => (stdout += chunk));
-    proc.stderr.on('data', (chunk) => (stderr += chunk));
-
-    proc.on('error', reject);
-    proc.on('close', (code) => {
-      if (code !== 0 && !stdout.trim()) {
-        const error = new Error(`yt-dlp завершился с кодом ${code}: ${stderr.slice(0, 500)}`);
-        console.error('[yt-dlp]', error.message);
-        return reject(error);
-      }
-      resolve(stdout);
-    });
-  });
-}
-
-function parseJsonLines(stdout) {
-  return stdout
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      try {
-        return JSON.parse(line);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
+// Типы запросов, которые этот экстрактор готов обработать даже без youtube-ссылки.
+const SUPPORTED_QUERY_TYPES = new Set([
+  QueryType.YOUTUBE,
+  QueryType.YOUTUBE_VIDEO,
+  QueryType.YOUTUBE_PLAYLIST,
+  QueryType.YOUTUBE_SEARCH,
+  QueryType.AUTO,
+  QueryType.AUTO_SEARCH,
+]);
 
 function formatDuration(seconds) {
   if (!seconds || Number.isNaN(seconds)) return '0:00';
@@ -72,11 +31,15 @@ function formatDuration(seconds) {
  * делегируем ему и поиск, и получение аудиопотока. Если YouTube снова
  * что-то поменяет - решение одно: обновить бинарник yt-dlp на сервере
  * (`yt-dlp -U` или `pip install -U yt-dlp`), без изменений в коде бота.
+ *
+ * Запуск yt-dlp приходит через options.ytdlp (см. createYtDlp), поэтому
+ * сам экстрактор от процессов и конфигурации не зависит.
  */
 class YtDlpExtractor extends BaseExtractor {
   static identifier = 'com.kgk44.ytdlp-extractor';
 
   async activate() {
+    this.ytdlp = this.options?.ytdlp ?? createYtDlp();
     this.protocols = ['ytsearch', 'youtube'];
     // Выше приоритет built-in экстракторов (SoundCloud/Spotify/AppleMusic и т.д.),
     // чтобы обычный текстовый поиск по умолчанию уходил на YouTube.
@@ -90,14 +53,7 @@ class YtDlpExtractor extends BaseExtractor {
   async validate(query, type) {
     if (typeof query !== 'string') return false;
     if (YOUTUBE_URL_RE.test(query)) return true;
-    return [
-      QueryType.YOUTUBE,
-      QueryType.YOUTUBE_VIDEO,
-      QueryType.YOUTUBE_PLAYLIST,
-      QueryType.YOUTUBE_SEARCH,
-      QueryType.AUTO,
-      QueryType.AUTO_SEARCH,
-    ].includes(type);
+    return SUPPORTED_QUERY_TYPES.has(type);
   }
 
   emptyResponse() {
@@ -127,130 +83,83 @@ class YtDlpExtractor extends BaseExtractor {
     return track;
   }
 
+  /** Ошибка yt-dlp (уже залогированная) для пользователя равна "ничего не найдено". */
+  async queryInfo(args) {
+    return this.ytdlp.runJsonLines(args).catch(() => []);
+  }
+
   async handle(query, context) {
-    // Прямая ссылка на видео
-    if (YOUTUBE_URL_RE.test(query) && !/[?&]list=/.test(query)) {
-      const stdout = await runYtDlpJson([
-        query,
-        '-j',
-        '--no-warnings',
-        '--no-playlist',
-        '--skip-download',
-      ]).catch(() => null);
-      if (!stdout) return this.emptyResponse();
-
-      const [info] = parseJsonLines(stdout);
-      if (!info) return this.emptyResponse();
-
-      return { playlist: null, tracks: [this.trackFromInfo(info, context)] };
+    if (YOUTUBE_URL_RE.test(query) && !PLAYLIST_PARAM_RE.test(query)) {
+      return this.handleVideo(query, context);
     }
-
-    // Плейлист
-    if (/[?&]list=/.test(query) || context.type === QueryType.YOUTUBE_PLAYLIST) {
-      const stdout = await runYtDlpJson([
-        query,
-        '-j',
-        '--no-warnings',
-        '--yes-playlist',
-        '--flat-playlist',
-        '--playlist-end',
-        '100',
-        '--skip-download',
-      ]).catch(() => null);
-      if (!stdout) return this.emptyResponse();
-
-      const entries = parseJsonLines(stdout);
-      if (!entries.length) return this.emptyResponse();
-
-      const playlist = new Playlist(this.context.player, {
-        title: entries[0].playlist_title || 'YouTube плейлист',
-        description: '',
-        thumbnail: entries[0].thumbnails?.[0]?.url,
-        type: 'playlist',
-        source: 'youtube',
-        author: { name: entries[0].playlist_uploader || 'YouTube', url: query },
-        tracks: [],
-        id: entries[0].playlist_id || query,
-        url: query,
-        rawPlaylist: entries,
-      });
-
-      const tracks = entries.map((entry) => {
-        const url = entry.url?.startsWith('http')
-          ? entry.url
-          : `https://www.youtube.com/watch?v=${entry.id}`;
-        const track = this.trackFromInfo({ ...entry, webpage_url: url }, context);
-        track.playlist = playlist;
-        return track;
-      });
-      playlist.tracks = tracks;
-
-      return { playlist, tracks };
+    if (PLAYLIST_PARAM_RE.test(query) || context.type === QueryType.YOUTUBE_PLAYLIST) {
+      return this.handlePlaylist(query, context);
     }
+    return this.handleSearch(query, context);
+  }
 
-    // Текстовый поиск
+  /** Прямая ссылка на видео. */
+  async handleVideo(url, context) {
+    const [info] = await this.queryInfo([url, '-j', '--no-warnings', '--no-playlist', '--skip-download']);
+    if (!info) return this.emptyResponse();
+
+    return { playlist: null, tracks: [this.trackFromInfo(info, context)] };
+  }
+
+  /** Плейлист: берём только первые PLAYLIST_LIMIT записей (защита от гигантских плейлистов). */
+  async handlePlaylist(url, context) {
+    const entries = await this.queryInfo([
+      url,
+      '-j',
+      '--no-warnings',
+      '--yes-playlist',
+      '--flat-playlist',
+      '--playlist-end',
+      String(PLAYLIST_LIMIT),
+      '--skip-download',
+    ]);
+    if (!entries.length) return this.emptyResponse();
+
+    const playlist = new Playlist(this.context.player, {
+      title: entries[0].playlist_title || 'YouTube плейлист',
+      description: '',
+      thumbnail: entries[0].thumbnails?.[0]?.url,
+      type: 'playlist',
+      source: 'youtube',
+      author: { name: entries[0].playlist_uploader || 'YouTube', url },
+      tracks: [],
+      id: entries[0].playlist_id || url,
+      url,
+      rawPlaylist: entries,
+    });
+
+    const tracks = entries.map((entry) => {
+      const trackUrl = entry.url?.startsWith('http') ? entry.url : `https://www.youtube.com/watch?v=${entry.id}`;
+      const track = this.trackFromInfo({ ...entry, webpage_url: trackUrl }, context);
+      track.playlist = playlist;
+      return track;
+    });
+    playlist.tracks = tracks;
+
+    return { playlist, tracks };
+  }
+
+  /** Текстовый поиск. */
+  async handleSearch(query, context) {
     const searchQuery = query.replace(/^ytsearch:?/i, '').trim();
-    const stdout = await runYtDlpJson([
-      `ytsearch5:${searchQuery}`,
+    const entries = await this.queryInfo([
+      `ytsearch${SEARCH_RESULTS}:${searchQuery}`,
       '-j',
       '--no-warnings',
       '--skip-download',
-    ]).catch(() => null);
-    if (!stdout) return this.emptyResponse();
-
-    const entries = parseJsonLines(stdout);
+    ]);
     if (!entries.length) return this.emptyResponse();
 
-    const tracks = entries.map((info) => this.trackFromInfo(info, context));
-    return { playlist: null, tracks };
+    return { playlist: null, tracks: entries.map((info) => this.trackFromInfo(info, context)) };
   }
 
   async stream(track) {
-    return this.createReadableStream(track.url);
-  }
-
-  createReadableStream(url) {
-    const proc = spawn(
-      config.ytdlp.binaryPath,
-      [
-        ...baseArgs(),
-        url,
-        '-f',
-        'bestaudio[acodec!=none]/bestaudio/best',
-        '-o',
-        '-',
-        '--quiet',
-        '--no-warnings',
-        '--no-playlist',
-        '--no-part',
-      ],
-      { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] },
-    );
-
-    let stderr = '';
-    proc.stderr.on('data', (chunk) => {
-      stderr += chunk;
-      if (stderr.length > 4000) stderr = stderr.slice(-4000);
-    });
-
-    proc.stdout.once('close', () => {
-      if (!proc.killed) proc.kill('SIGKILL');
-    });
-    proc.stdout.once('error', () => {
-      if (!proc.killed) proc.kill('SIGKILL');
-    });
-
-    proc.once('error', (err) => {
-      proc.stdout.emit('error', err);
-    });
-    proc.once('close', (code) => {
-      if (code !== 0 && code !== null) {
-        console.error(`[yt-dlp stream] код ${code}: ${stderr.slice(-500)}`);
-        proc.stdout.emit('error', new Error(`yt-dlp завершился с кодом ${code}: ${stderr.slice(-500)}`));
-      }
-    });
-
-    return proc.stdout;
+    return this.ytdlp.createAudioStream(track.url);
   }
 
   /**
@@ -285,7 +194,7 @@ class YtDlpExtractor extends BaseExtractor {
     return result;
   }
 
-  async getRelatedTracks(track, context) {
+  async getRelatedTracks(track) {
     const info = await this.handle(`${track.author} ${track.title}`, {
       type: QueryType.YOUTUBE_SEARCH,
       requestedBy: track.requestedBy,

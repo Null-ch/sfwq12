@@ -1,16 +1,12 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { useQueue } = require('discord-player');
-const { buildQueueEmbed } = require('../music/controls');
+const { createQueueCommand } = require('../music/queueCommand');
+const { buildQueueEmbed } = require('../music/ui');
 
-module.exports = {
-  data: new SlashCommandBuilder().setName('queue').setDescription('Показать очередь треков'),
-
-  async execute(interaction) {
-    const queue = useQueue(interaction.guild.id);
-    if (!queue || !queue.currentTrack) {
-      return interaction.reply({ content: '❌ Очередь пуста.', ephemeral: true });
-    }
-
-    await interaction.reply({ embeds: [buildQueueEmbed(queue)] });
-  },
-};
+module.exports = () =>
+  createQueueCommand({
+    data: new SlashCommandBuilder().setName('queue').setDescription('Показать очередь треков'),
+    emptyMessage: '❌ Очередь пуста.',
+    async run(interaction, queue) {
+      await interaction.reply({ embeds: [buildQueueEmbed(queue)] });
+    },
+  });

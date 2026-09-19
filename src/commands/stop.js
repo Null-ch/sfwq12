@@ -1,18 +1,15 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { useQueue } = require('discord-player');
+const { createQueueCommand } = require('../music/queueCommand');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('stop')
-    .setDescription('Остановить воспроизведение, очистить очередь и выйти из канала'),
-
-  async execute(interaction) {
-    const queue = useQueue(interaction.guild.id);
-    if (!queue) {
-      return interaction.reply({ content: '❌ Бот сейчас ничего не играет.', ephemeral: true });
-    }
-
-    queue.delete();
-    await interaction.reply('⏹️ Остановлено, очередь очищена.');
-  },
-};
+module.exports = () =>
+  createQueueCommand({
+    data: new SlashCommandBuilder()
+      .setName('stop')
+      .setDescription('Остановить воспроизведение, очистить очередь и выйти из канала'),
+    emptyMessage: '❌ Бот сейчас ничего не играет.',
+    requireTrack: false,
+    async run(interaction, queue) {
+      queue.delete();
+      await interaction.reply('⏹️ Остановлено, очередь очищена.');
+    },
+  });

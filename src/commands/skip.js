@@ -1,17 +1,13 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { useQueue } = require('discord-player');
+const { createQueueCommand } = require('../music/queueCommand');
 
-module.exports = {
-  data: new SlashCommandBuilder().setName('skip').setDescription('Пропустить текущий трек'),
-
-  async execute(interaction) {
-    const queue = useQueue(interaction.guild.id);
-    if (!queue || !queue.currentTrack) {
-      return interaction.reply({ content: '❌ Сейчас ничего не играет.', ephemeral: true });
-    }
-
-    const skipped = queue.currentTrack;
-    queue.node.skip();
-    await interaction.reply(`⏭️ Пропущено: **${skipped.title}**`);
-  },
-};
+module.exports = () =>
+  createQueueCommand({
+    data: new SlashCommandBuilder().setName('skip').setDescription('Пропустить текущий трек'),
+    emptyMessage: '❌ Сейчас ничего не играет.',
+    async run(interaction, queue) {
+      const skipped = queue.currentTrack;
+      queue.node.skip();
+      await interaction.reply(`⏭️ Пропущено: **${skipped.title}**`);
+    },
+  });

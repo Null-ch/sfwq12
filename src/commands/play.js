@@ -1,8 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { useMainPlayer } = require('discord-player');
-const config = require('../config');
+const { COLORS } = require('../core/theme');
+const { EPHEMERAL } = require('../core/ephemeral');
 
-module.exports = {
+const PLAY_TIMEOUT_MS = 45_000;
+const DEFAULT_VOLUME = 50;
+
+module.exports = ({ config }) => ({
   data: new SlashCommandBuilder()
     .setName('play')
     .setDescription('Включить трек/плейлист (YouTube, Spotify, SoundCloud) или добавить его в очередь')
@@ -18,7 +22,7 @@ module.exports = {
     if (!channel) {
       return interaction.reply({
         content: '❌ Зайди сначала в голосовой канал.',
-        ephemeral: true,
+        ...EPHEMERAL,
       });
     }
 
@@ -29,20 +33,20 @@ module.exports = {
 
     try {
       const { track, queue } = await player.play(channel, query, {
-        signal: AbortSignal.timeout(45_000),
+        signal: AbortSignal.timeout(PLAY_TIMEOUT_MS),
         nodeOptions: {
           metadata: { textChannel: interaction.channel },
           leaveOnEmpty: true,
           leaveOnEmptyCooldown: config.music.leaveDelayMs,
           leaveOnEnd: true,
           leaveOnEndCooldown: config.music.leaveDelayMs,
-          volume: 50,
+          volume: DEFAULT_VOLUME,
           selfDeaf: true,
         },
       });
 
       const embed = new EmbedBuilder()
-        .setColor(0x5865f2)
+        .setColor(COLORS.info)
         .setDescription(
           queue.currentTrack === track
             ? `▶️ Играю: **[${track.title}](${track.url})** — \`${track.duration}\``
@@ -59,4 +63,4 @@ module.exports = {
       );
     }
   },
-};
+});

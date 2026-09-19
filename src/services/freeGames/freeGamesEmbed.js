@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
+const { discordTime } = require('../../core/discordTime');
 
 const PLATFORMS = {
   epic: { name: 'Epic Games Store', color: 0x0078f2 },
@@ -11,8 +12,7 @@ function buildFreeGameEmbed(game) {
 
   let until = 'Точный срок неизвестен — лучше забрать сразу.';
   if (game.endsAt) {
-    const ts = Math.floor(game.endsAt.getTime() / 1000);
-    until = `Успей забрать до <t:${ts}:f> (<t:${ts}:R>)`;
+    until = `Успей забрать до ${discordTime(game.endsAt, 'f')} (${discordTime(game.endsAt, 'R')})`;
   }
 
   const embed = new EmbedBuilder()

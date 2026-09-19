@@ -1,41 +1,31 @@
-const cron = require('node-cron');
-const { getPlayerSummary, requestRefresh } = require('../services/dotaService');
-const { buildStatsEmbed } = require('../services/dotaEmbed');
-const config = require('../config');
+const { buildStatsEmbed } = require('../services/dota/dotaEmbed');
 
-const REFRESH_WAIT_MS = 15_000;
+function createDailyDotaJob({ config, services }) {
+  const { defaultAccountId, cron, timezone } = config.dota;
 
-function scheduleDailyDota(client) {
-  if (!config.dota.defaultAccountId) {
-    console.warn('⚠️ DOTA_DEFAULT_ACCOUNT_ID не задан — ежедневная статистика Dota 2 отключена.');
-    return;
-  }
-  if (!config.notify.channelId) {
-    console.warn('⚠️ NOTIFY_CHANNEL_ID не задан — ежедневная статистика Dota 2 отключена.');
-    return;
+  let disabledReason = null;
+  if (!defaultAccountId) {
+    disabledReason = '⚠️ DOTA_DEFAULT_ACCOUNT_ID не задан — ежедневная статистика Dota 2 отключена.';
+  } else if (!config.notify.channelId) {
+    disabledReason = '⚠️ NOTIFY_CHANNEL_ID не задан — ежедневная статистика Dota 2 отключена.';
   }
 
-  cron.schedule(
-    config.dota.cron,
-    async () => {
-      try {
-        // OpenDota обновляет матчи с задержкой - просим подтянуть свежие и немного ждём.
-        await requestRefresh(config.dota.defaultAccountId);
-        await new Promise((resolve) => setTimeout(resolve, REFRESH_WAIT_MS));
+  return {
+    name: 'dota',
+    disabledReason,
+    cron,
+    timezone,
+    errorMessage: 'Не удалось отправить ежедневную статистику Dota 2:',
+    startedMessage: `🎮 Ежедневная статистика Dota 2 запланирована (cron "${cron}", таймзона ${timezone}).`,
+    async run(client) {
+      // OpenDota обновляет матчи с задержкой - просим подтянуть свежие и немного ждём.
+      await services.dota.refreshAndWait(defaultAccountId);
 
-        const channel = await client.channels.fetch(config.notify.channelId);
-        const stats = await getPlayerSummary(config.dota.defaultAccountId);
-        await channel.send({ embeds: [buildStatsEmbed(stats).setTimestamp()] });
-      } catch (error) {
-        console.error('Не удалось отправить ежедневную статистику Dota 2:', error);
-      }
+      const channel = await client.channels.fetch(config.notify.channelId);
+      const stats = await services.dota.getPlayerSummary(defaultAccountId);
+      await channel.send({ embeds: [buildStatsEmbed(stats).setTimestamp()] });
     },
-    { timezone: config.dota.timezone },
-  );
-
-  console.log(
-    `🎮 Ежедневная статистика Dota 2 запланирована (cron "${config.dota.cron}", таймзона ${config.dota.timezone}).`,
-  );
+  };
 }
 
-module.exports = { scheduleDailyDota };
+module.exports = { createDailyDotaJob };

@@ -1,14 +1,13 @@
-const { GuildQueueEvent, useMainPlayer } = require('discord-player');
+const { GuildQueueEvent } = require('discord-player');
 const { EmbedBuilder } = require('discord.js');
-const { buildControls } = require('../music/controls');
+const { COLORS } = require('../core/theme');
+const { buildControls } = require('./ui');
 
 /**
- * Не событие discord.js клиента - подписывается на события плеера
- * discord-player (проигрывание трека, ошибки и т.д.).
+ * Подписывается на события плеера discord-player (проигрывание трека, ошибки и т.д.).
+ * Это не события клиента discord.js, поэтому модуль лежит рядом с музыкой, а не в events/.
  */
-function registerPlayerEvents(client) {
-  const player = useMainPlayer();
-
+function registerPlayerEvents(player) {
   // Сообщение "Сейчас играет" с кнопками хранится в metadata очереди, чтобы
   // при смене трека/паузе/конце очереди можно было обновить или убрать кнопки.
   const setControls = (queue, paused) =>
@@ -26,7 +25,7 @@ function registerPlayerEvents(client) {
     clearControls(queue);
 
     const embed = new EmbedBuilder()
-      .setColor(0x57f287)
+      .setColor(COLORS.success)
       .setDescription(`▶️ Сейчас играет: **[${track.title}](${track.url})** — \`${track.duration}\``)
       .setThumbnail(track.thumbnail || null);
 

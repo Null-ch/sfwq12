@@ -1,8 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { fetchAllFreeGames } = require('../services/freeGamesService');
-const { buildFreeGameEmbed } = require('../services/freeGamesEmbed');
+const { buildFreeGameEmbed } = require('../services/freeGames/freeGamesEmbed');
 
-module.exports = {
+// Discord принимает не больше 10 эмбедов в одном сообщении.
+const MAX_EMBEDS = 10;
+
+module.exports = ({ services }) => ({
   data: new SlashCommandBuilder()
     .setName('freegames')
     .setDescription('Что сейчас раздают бесплатно в Epic Games и Steam'),
@@ -10,10 +12,10 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply();
 
-    const games = (await fetchAllFreeGames()).slice(0, 10);
+    const games = (await services.freeGames.fetchAllFreeGames()).slice(0, MAX_EMBEDS);
     if (!games.length) {
       return interaction.editReply('Сейчас бесплатных раздач не нашлось.');
     }
     return interaction.editReply({ embeds: games.map(buildFreeGameEmbed) });
   },
-};
+});

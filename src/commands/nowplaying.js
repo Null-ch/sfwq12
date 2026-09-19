@@ -1,25 +1,22 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { useQueue } = require('discord-player');
+const { COLORS } = require('../core/theme');
+const { createQueueCommand } = require('../music/queueCommand');
 
-module.exports = {
-  data: new SlashCommandBuilder().setName('nowplaying').setDescription('Что играет сейчас'),
+module.exports = () =>
+  createQueueCommand({
+    data: new SlashCommandBuilder().setName('nowplaying').setDescription('Что играет сейчас'),
+    emptyMessage: '❌ Сейчас ничего не играет.',
+    async run(interaction, queue) {
+      const track = queue.currentTrack;
+      const progress = queue.node.createProgressBar?.() ?? '';
 
-  async execute(interaction) {
-    const queue = useQueue(interaction.guild.id);
-    if (!queue || !queue.currentTrack) {
-      return interaction.reply({ content: '❌ Сейчас ничего не играет.', ephemeral: true });
-    }
+      const embed = new EmbedBuilder()
+        .setColor(COLORS.info)
+        .setTitle('🎵 Сейчас играет')
+        .setDescription(`**[${track.title}](${track.url})**\n${progress}`)
+        .setThumbnail(track.thumbnail || null)
+        .addFields({ name: 'Автор', value: track.author || 'Неизвестен', inline: true });
 
-    const track = queue.currentTrack;
-    const progress = queue.node.createProgressBar?.() ?? '';
-
-    const embed = new EmbedBuilder()
-      .setColor(0x5865f2)
-      .setTitle('🎵 Сейчас играет')
-      .setDescription(`**[${track.title}](${track.url})**\n${progress}`)
-      .setThumbnail(track.thumbnail || null)
-      .addFields({ name: 'Автор', value: track.author || 'Неизвестен', inline: true });
-
-    await interaction.reply({ embeds: [embed] });
-  },
-};
+      await interaction.reply({ embeds: [embed] });
+    },
+  });

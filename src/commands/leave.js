@@ -1,16 +1,13 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { useQueue } = require('discord-player');
+const { createQueueCommand } = require('../music/queueCommand');
 
-module.exports = {
-  data: new SlashCommandBuilder().setName('leave').setDescription('Выгнать бота из голосового канала'),
-
-  async execute(interaction) {
-    const queue = useQueue(interaction.guild.id);
-    if (!queue) {
-      return interaction.reply({ content: '❌ Бот не в голосовом канале.', ephemeral: true });
-    }
-
-    queue.delete();
-    await interaction.reply('👋 Вышел из канала.');
-  },
-};
+module.exports = () =>
+  createQueueCommand({
+    data: new SlashCommandBuilder().setName('leave').setDescription('Выгнать бота из голосового канала'),
+    emptyMessage: '❌ Бот не в голосовом канале.',
+    requireTrack: false,
+    async run(interaction, queue) {
+      queue.delete();
+      await interaction.reply('👋 Вышел из канала.');
+    },
+  });

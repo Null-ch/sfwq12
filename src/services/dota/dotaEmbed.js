@@ -1,20 +1,11 @@
 const { EmbedBuilder } = require('discord.js');
-
-function formatMinutes(totalMinutes) {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (!hours) return `${minutes} мин`;
-  return minutes ? `${hours} ч ${minutes} мин` : `${hours} ч`;
-}
-
-// <t:...> - Discord сам показывает время в часовом поясе и локали каждого зрителя.
-function discordTime(date, style) {
-  return `<t:${Math.floor(date.getTime() / 1000)}:${style}>`;
-}
+const { COLORS, FOOTERS } = require('../../core/theme');
+const { discordTime } = require('../../core/discordTime');
+const { formatMinutes } = require('./format');
 
 function buildStatsEmbed(stats) {
   const embed = new EmbedBuilder()
-    .setColor(0xa9302a)
+    .setColor(COLORS.dota)
     .setTitle(`Dota 2: ${stats.nickname}`)
     .setThumbnail(stats.avatar || null)
     .setURL(stats.profileUrl || null)
@@ -67,7 +58,7 @@ function buildStatsEmbed(stats) {
     });
   }
 
-  return embed.setFooter({ text: 'Данные: АХУЕННЫЙ ВИДЖЕТ ДОТЫ' });
+  return embed.setFooter({ text: FOOTERS.dota });
 }
 
-module.exports = { buildStatsEmbed, formatMinutes };
+module.exports = { buildStatsEmbed };
