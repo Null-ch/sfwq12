@@ -1,16 +1,17 @@
 const cron = require('node-cron');
 const { requestRefresh } = require('../services/dotaService');
-const { checkTodayPlaytime, buildAlertMessage } = require('../services/dotaAlert');
+const { checkTodayPlaytime, buildDailyMessage } = require('../services/dotaAlert');
 const config = require('../config');
 
 const REFRESH_WAIT_MS = 15_000;
 
 function scheduleDotaAlert(client) {
-  const { userId, accountId, minHours, cron: expression, channelId } = config.dota.alert;
+  const { userId, accountId, minHours, cron: expression } = config.dota.alert;
+  const channelId = config.notify.channelId;
 
   if (!userId || !accountId || !channelId) {
     console.warn(
-      '⚠️ Напоминание о Dota выключено: нужны DOTA_ALERT_USER_ID, DOTA_ALERT_ACCOUNT_ID (или DOTA_DEFAULT_ACCOUNT_ID) и канал.',
+      '⚠️ Напоминание о Dota выключено: нужны DOTA_ALERT_USER_ID, DOTA_ALERT_ACCOUNT_ID (или DOTA_DEFAULT_ACCOUNT_ID) и NOTIFY_CHANNEL_ID.',
     );
     return;
   }
@@ -27,10 +28,9 @@ function scheduleDotaAlert(client) {
           console.warn(`[dota-alert] у OpenDota нет данных по ${accountId} - напоминание пропущено.`);
           return;
         }
-        if (!result.low) return;
 
         const channel = await client.channels.fetch(channelId);
-        await channel.send(buildAlertMessage(userId, result.minutes));
+        await channel.send(buildDailyMessage(userId, result));
       } catch (error) {
         console.error('Не удалось выполнить проверку игрового времени Dota 2:', error);
       }

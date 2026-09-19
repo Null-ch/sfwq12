@@ -4,8 +4,8 @@ const { getForecastsForCities } = require('../services/weatherService');
 const config = require('../config');
 
 function scheduleDailyWeather(client) {
-  if (!config.weather.channelId) {
-    console.warn('⚠️ WEATHER_CHANNEL_ID не задан — ежедневный прогноз погоды отключён.');
+  if (!config.notify.channelId) {
+    console.warn('⚠️ NOTIFY_CHANNEL_ID не задан — ежедневный прогноз погоды отключён.');
     return;
   }
 
@@ -13,7 +13,7 @@ function scheduleDailyWeather(client) {
     config.weather.cron,
     async () => {
       try {
-        const channel = await client.channels.fetch(config.weather.channelId);
+        const channel = await client.channels.fetch(config.notify.channelId);
         const results = await getForecastsForCities(config.weather.cities);
 
         const embed = new EmbedBuilder()

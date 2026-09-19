@@ -17,8 +17,8 @@ async function checkTodayPlaytime(accountId, minHours) {
 
 function buildAlertText(userId, minutes) {
   return (
-    `<@${userId}> СЕГОДНЯ ДЛИТЕЛЬНОСТЬ ИГРЫ В ДОТУ : ${formatMinutes(minutes)} ` +
-    'критически низкое значение, вам необходимо запустить любимую игру'
+     `<@${userId}> 🚨 СЕГОДНЯ ДЛИТЕЛЬНОСТЬ ИГРЫ В ДОТУ: ${formatMinutes(minutes)} ⚠️ ` +
+    '🔴 КРИТИЧЕСКИ низкое значение, необходимо СРОЧНО запустить любимую игру 🎮🔥'
   );
 }
 
@@ -27,4 +27,20 @@ function buildAlertMessage(userId, minutes) {
   return { content: buildAlertText(userId, minutes), allowedMentions: { users: [userId] } };
 }
 
-module.exports = { checkTodayPlaytime, buildAlertMessage };
+function buildPraiseText(userId, minutes) {
+  return (
+    `<@${userId}> 🏆 СЕГОДНЯ ДЛИТЕЛЬНОСТЬ ИГРЫ В ДОТУ: ${formatMinutes(minutes)} ✅ ` +
+    'Норма выполнена, так держать, настоящий воин! 🎮🔥'
+  );
+}
+
+function buildPraiseMessage(userId, minutes) {
+  return { content: buildPraiseText(userId, minutes), allowedMentions: { users: [userId] } };
+}
+
+// Что отправить по итогам проверки: напоминание при низком значении, иначе похвалу.
+function buildDailyMessage(userId, result) {
+  return result.low ? buildAlertMessage(userId, result.minutes) : buildPraiseMessage(userId, result.minutes);
+}
+
+module.exports = { checkTodayPlaytime, buildAlertMessage, buildPraiseMessage, buildDailyMessage };

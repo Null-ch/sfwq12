@@ -10,8 +10,8 @@ function scheduleDailyDota(client) {
     console.warn('⚠️ DOTA_DEFAULT_ACCOUNT_ID не задан — ежедневная статистика Dota 2 отключена.');
     return;
   }
-  if (!config.dota.channelId) {
-    console.warn('⚠️ Нет канала для статистики Dota 2 (DOTA_CHANNEL_ID / WEATHER_CHANNEL_ID) — отключена.');
+  if (!config.notify.channelId) {
+    console.warn('⚠️ NOTIFY_CHANNEL_ID не задан — ежедневная статистика Dota 2 отключена.');
     return;
   }
 
@@ -23,7 +23,7 @@ function scheduleDailyDota(client) {
         await requestRefresh(config.dota.defaultAccountId);
         await new Promise((resolve) => setTimeout(resolve, REFRESH_WAIT_MS));
 
-        const channel = await client.channels.fetch(config.dota.channelId);
+        const channel = await client.channels.fetch(config.notify.channelId);
         const stats = await getPlayerSummary(config.dota.defaultAccountId);
         await channel.send({ embeds: [buildStatsEmbed(stats).setTimestamp()] });
       } catch (error) {
