@@ -10,6 +10,7 @@ const { registerPlayerEvents } = require('./events/playerEvents');
 const { scheduleDailyWeather } = require('./jobs/dailyWeather');
 const { scheduleDailyDota } = require('./jobs/dailyDota');
 const { scheduleDotaAlert } = require('./jobs/dailyDotaAlert');
+const { scheduleFreeGames } = require('./jobs/freeGames');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
@@ -45,6 +46,7 @@ const player = new Player(client);
   scheduleDailyWeather(client);
   scheduleDailyDota(client);
   scheduleDotaAlert(client);
+  scheduleFreeGames(client);
 
   await client.login(config.discord.token);
 })().catch((error) => {

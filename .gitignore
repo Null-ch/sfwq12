@@ -1,4 +1,5 @@
 node_modules/
 .env
 data/dota-links.json
+data/free-games.json
 npm-debug.log*

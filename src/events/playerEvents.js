@@ -1,5 +1,6 @@
 const { GuildQueueEvent, useMainPlayer } = require('discord-player');
 const { EmbedBuilder } = require('discord.js');
+const { buildControls } = require('../music/controls');
 
 /**
  * Не событие discord.js клиента - подписывается на события плеера
@@ -8,17 +9,37 @@ const { EmbedBuilder } = require('discord.js');
 function registerPlayerEvents(client) {
   const player = useMainPlayer();
 
-  player.events.on(GuildQueueEvent.PlayerStart, (queue, track) => {
+  // Сообщение "Сейчас играет" с кнопками хранится в metadata очереди, чтобы
+  // при смене трека/паузе/конце очереди можно было обновить или убрать кнопки.
+  const setControls = (queue, paused) =>
+    queue.metadata?.controlsMessage?.edit({ components: [buildControls(paused)] }).catch(() => {});
+  const clearControls = (queue) => {
+    queue.metadata?.controlsMessage?.edit({ components: [] }).catch(() => {});
+    if (queue.metadata) queue.metadata.controlsMessage = null;
+  };
+
+  player.events.on(GuildQueueEvent.PlayerStart, async (queue, track) => {
     const channel = queue.metadata?.textChannel;
     if (!channel) return;
+
+    // У предыдущего трека кнопки уже не нужны.
+    clearControls(queue);
 
     const embed = new EmbedBuilder()
       .setColor(0x57f287)
       .setDescription(`▶️ Сейчас играет: **[${track.title}](${track.url})** — \`${track.duration}\``)
       .setThumbnail(track.thumbnail || null);
 
-    channel.send({ embeds: [embed] }).catch(() => {});
+    const message = await channel
+      .send({ embeds: [embed], components: [buildControls(queue.node.isPaused())] })
+      .catch(() => null);
+    queue.metadata.controlsMessage = message;
   });
+
+  // Пауза/продолжение через /pause и /resume тоже меняют подпись кнопки.
+  player.events.on(GuildQueueEvent.PlayerPause, (queue) => setControls(queue, true));
+  player.events.on(GuildQueueEvent.PlayerResume, (queue) => setControls(queue, false));
+  player.events.on(GuildQueueEvent.Disconnect, clearControls);
 
   player.on('error', (error) => console.error('[player error]', error));
   player.events.on(GuildQueueEvent.Error, (queue, error) => console.error('[queue error]', error));
@@ -38,6 +59,7 @@ function registerPlayerEvents(client) {
   });
 
   player.events.on(GuildQueueEvent.EmptyQueue, (queue) => {
+    clearControls(queue);
     const channel = queue.metadata?.textChannel;
     channel?.send('✅ Очередь закончилась.').catch(() => {});
   });

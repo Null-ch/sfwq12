@@ -45,6 +45,7 @@ cp .env.example .env
 - `DOTA_DEFAULT_ACCOUNT_ID` — account_id, по которому бот каждый день шлёт статистику (и который используется в `/dota stats` без параметров)
 - `DOTA_CRON`, `DOTA_TIMEZONE` — время/таймзона ежедневной статистики Dota (по умолчанию 23:00)
 - `DOTA_ALERT_USER_ID`, `DOTA_ALERT_ACCOUNT_ID`, `DOTA_ALERT_MIN_HOURS`, `DOTA_ALERT_CRON` — напоминание «пора играть» (см. раздел Dota 2)
+- `FREEGAMES_CRON`, `FREEGAMES_COUNTRY` — как часто проверять бесплатные раздачи Epic/Steam (по умолчанию каждые 2 часа) и регион Epic
 - `MUSIC_LEAVE_DELAY_SECONDS` — через сколько секунд бот выходит из голосового канала после конца очереди (по умолчанию 30)
 - `STEAM_API_KEY` — опционально, для точного «всего часов в Dota 2» как в Steam
 
@@ -61,6 +62,7 @@ npm start
 - `/play query:<название или ссылка>` — играть/добавить в очередь (YouTube, Spotify, SoundCloud)
 - `/skip`, `/pause`, `/resume`, `/stop`, `/leave`
 - `/queue` — показать очередь
+- Под сообщением «Сейчас играет» есть кнопки: пауза/продолжить, скип, очередь, стоп. Управлять (пауза/скип/стоп) может тот, кто сидит в одном голосовом канале с ботом; очередь смотрят все.
 - `/nowplaying` — что играет сейчас
 - `/volume level:<0-100>`
 
@@ -69,6 +71,10 @@ npm start
 - `/weather city:<город1, город2, ...>` — сводка сразу по нескольким городам через запятую
 - `/weather` без параметров — прогноз по городам из `WEATHER_CITIES`
 - Ежедневный автопост в `NOTIFY_CHANNEL_ID` в момент, заданный `WEATHER_CRON`, сразу по всем городам из `WEATHER_CITIES`
+
+**Бесплатные игры**
+- `/freegames` — что сейчас раздают бесплатно в Epic Games и Steam
+- Автопост новых раздач в `NOTIFY_CHANNEL_ID` (Epic — официальный API магазина, Steam — GamerPower.com). Уже опубликованные запоминаются в `data/free-games.json`, повторов не будет.
 
 **Dota 2**
 - `/dota link account_id:<id или ссылка>` — привязать свой профиль к своему Discord-аккаунту (один раз)

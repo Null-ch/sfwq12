@@ -26,6 +26,12 @@ module.exports = {
     // WEATHER_CHANNEL_ID - старое имя переменной, оставлено, чтобы уже настроенный .env не сломался.
     channelId: process.env.NOTIFY_CHANNEL_ID || process.env.WEATHER_CHANNEL_ID || null,
   },
+  freeGames: {
+    // Как часто проверять раздачи (Epic меняет их раз в неделю, Steam - когда придётся).
+    cron: process.env.FREEGAMES_CRON || '0 */2 * * *',
+    // Регион для Epic (влияет на цены и доступность), двухбуквенный код страны.
+    country: (process.env.FREEGAMES_COUNTRY || 'RU').toUpperCase(),
+  },
   music: {
     // Через сколько после конца очереди / когда в канале не осталось людей бот выходит из канала.
     leaveDelayMs: Number(process.env.MUSIC_LEAVE_DELAY_SECONDS ?? 30) * 1000,
