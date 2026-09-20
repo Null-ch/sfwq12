@@ -8,35 +8,7 @@ function buildStatsEmbed(stats) {
     .setColor(COLORS.dota)
     .setTitle(`Dota 2: ${stats.nickname}`)
     .setThumbnail(stats.avatar || null)
-    .setURL(stats.profileUrl || null)
-    .addFields(
-      { name: 'Ранг', value: stats.rank, inline: true },
-      {
-        name: 'MMR (оценка)',
-        value: stats.mmrEstimate ? String(stats.mmrEstimate) : 'Скрыт/недоступен',
-        inline: true,
-      },
-      {
-        name: 'Победы / Поражения',
-        value: `${stats.wins}W / ${stats.losses}L (${stats.winrate}%)`,
-        inline: true,
-      },
-    );
-
-  if (stats.steamHours != null) {
-    embed.addFields({
-      name: 'Всего в Dota 2 (Steam)',
-      value: `${Math.round(stats.steamHours).toLocaleString('ru-RU')} ч`,
-      inline: true,
-    });
-  }
-  if (stats.totalMatchHours != null) {
-    embed.addFields({
-      name: 'Всего в матчах',
-      value: `${Math.round(stats.totalMatchHours).toLocaleString('ru-RU')} ч`,
-      inline: true,
-    });
-  }
+    .setURL(stats.profileUrl || null);
 
   const today = stats.today;
   embed.addFields({
@@ -53,8 +25,7 @@ function buildStatsEmbed(stats) {
       name: 'Последний матч',
       value:
         `${discordTime(m.endTime, 'R')} (${discordTime(m.endTime, 'f')})\n` +
-        `${m.won ? '✅ Победа' : '❌ Поражение'} на **${m.heroName}**, KDA ${m.kills}/${m.deaths}/${m.assists}, ${m.durationMinutes} мин\n` +
-        `[Матч #${m.matchId}](https://www.opendota.com/matches/${m.matchId})`,
+        `${m.won ? '✅ Победа' : '❌ Поражение'} на **${m.heroName}**, KDA ${m.kills}/${m.deaths}/${m.assists}, ${m.durationMinutes} мин\n`,
     });
   }
 
