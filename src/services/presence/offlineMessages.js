@@ -10,7 +10,7 @@ function formatDays(days) {
 
 // allowedMentions: явно разрешаем пинг только тех, о ком пишем.
 function buildOfflineMessage(entries) {
-  const lines = entries.map(({ userId, days }) => `<@${userId}> 👻 в сети не появлялись уже ${formatDays(days)}`);
+  const lines = entries.map(({ userId, days }) => `<@${userId}> 👻 дней с момента последнего пришествия ${formatDays(days)}`);
   return {
     content: lines.join('\n'),
     allowedMentions: { users: entries.map(({ userId }) => userId) },
