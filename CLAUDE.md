@@ -24,6 +24,7 @@ Composition root — [src/app.js](src/app.js) (`createApp(config).start()`); с�
 | `src/services/weather/` | сервис, коды погоды, эмбеды |
 | `src/services/dota/` | `openDotaClient`, `steamClient` (транспорт); `accountId`, `rank`, `matches`, `format` (чистая логика); `dotaService`, `dotaAlert`, `dotaAlertMessages`, `dotaEmbed`, `dotaLinks` |
 | `src/services/freeGames/` | `sources/{epic,steam,gamerPower}.js`, `freeGamesService` (список источников), `freeGamesStore`, `freeGamesEmbed` |
+| `src/services/presence/` | `onlineTracker` (кто с какого момента офлайн, состояние в `offline-since.json`), `offlineMessages` |
 | `src/jobs/` | `scheduler.js` (`registerJob`), `index.js` (список задач), по файлу на задачу — фабрика, возвращающая описание `{ name, disabledReason, cron, timezone, run, ... }` |
 
 ## Как расширять
@@ -39,7 +40,8 @@ Composition root — [src/app.js](src/app.js) (`createApp(config).start()`); с�
 - CommonJS, 2 пробела, одинарные кавычки, `;`, комментарии на русском и только там, где объясняют «почему».
 - Пользовательские тексты (ответы, ошибки, логи) — русские и часто попадают в UI: при рефакторинге не менять их дословно (футеры «АХУЕННЫЙ ВИДЖЕТ …» — намеренные).
 - Ошибки внешних API отдаёт сервис через `errorMessage` своего `createHttpClient`; пользователь видит `error.message`.
-- Состояние хранится в JSON в `data/` (`DATA_DIR`): `dota-links.json`, `free-games.json` (в git не попадает).
+- Состояние хранится в JSON в `data/` (`DATA_DIR`): `dota-links.json`, `free-games.json`, `offline-since.json` (в git не попадает).
+- Интент `GuildPresences` (привилегированный) запрашивается в `app.js` только при непустом `OFFLINE_ALERT_USER_IDS`.
 
 ## Особенности
 

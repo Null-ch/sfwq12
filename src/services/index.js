@@ -12,6 +12,7 @@ const { createSteamSource } = require('./freeGames/sources/steam');
 const { createGamerPowerClient } = require('./freeGames/sources/gamerPower');
 const { createFreeGamesService } = require('./freeGames/freeGamesService');
 const { createFreeGamesStore } = require('./freeGames/freeGamesStore');
+const { createOnlineTracker } = require('./presence/onlineTracker');
 
 /**
  * Единственное место, где конкретные реализации сервисов связываются между собой
@@ -48,7 +49,12 @@ function createServices(config) {
     createJsonFileStore(path.join(config.paths.dataDir, 'free-games.json')),
   );
 
-  return { weather, dota, dotaAlert, dotaLinks, freeGames, freeGamesStore };
+  const onlineTracker = createOnlineTracker({
+    store: createJsonFileStore(path.join(config.paths.dataDir, 'offline-since.json')),
+    userIds: config.offlineAlert.userIds,
+  });
+
+  return { weather, dota, dotaAlert, dotaLinks, freeGames, freeGamesStore, onlineTracker };
 }
 
 module.exports = { createServices };

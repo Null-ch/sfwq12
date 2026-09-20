@@ -27,7 +27,7 @@ pip install -U "yt-dlp[default]"
 1. Открой https://discord.com/developers/applications и выбери своё приложение.
 2. Слева зайди в **Bot**. Если бота ещё нет — нажми **Add Bot**.
 3. Нажми **Reset Token** и скопируй токен — это и есть `DISCORD_TOKEN` (НЕ Public Key, который ты присылал — он для проверки подписи HTTP-интеракций и тут не используется).
-4. Включи **Privileged Gateway Intents**, если понадобятся: для этого бота они не нужны (используются только `Guilds` и `GuildVoiceStates`).
+4. Включи **Privileged Gateway Intents**, если понадобятся: базово они не нужны (используются `Guilds` и `GuildVoiceStates`). Единственное исключение — **Presence Intent**: он нужен для уведомлений «давно не было в сети» (`OFFLINE_ALERT_USER_IDS`). Если список пуст, бот этот интент не запрашивает.
 5. Вкладка **OAuth2 → URL Generator**: выбери scope `bot` и `applications.commands`, из permissions отметь минимум `Connect`, `Speak`, `Send Messages`, `Embed Links`, `View Channel`. Скопируй сгенерированную ссылку и открой её, чтобы пригласить бота на сервер.
 
 ## 3. Настройка проекта
@@ -46,6 +46,7 @@ cp .env.example .env
 - `DOTA_DEFAULT_ACCOUNT_ID` — account_id, по которому бот каждый день шлёт статистику (и который используется в `/dota stats` без параметров)
 - `DOTA_CRON`, `DOTA_TIMEZONE` — время/таймзона ежедневной статистики Dota (по умолчанию 23:00)
 - `DOTA_ALERT_USER_ID`, `DOTA_ALERT_ACCOUNT_ID`, `DOTA_ALERT_MIN_HOURS`, `DOTA_ALERT_CRON` — напоминание «пора играть» (см. раздел Dota 2)
+- `OFFLINE_ALERT_USER_IDS`, `OFFLINE_ALERT_MIN_DAYS`, `OFFLINE_ALERT_CRON`, `OFFLINE_ALERT_TIMEZONE` — уведомление «давно не было в сети» (см. раздел «Отсутствие в сети»)
 - `FREEGAMES_CRON`, `FREEGAMES_COUNTRY` — как часто проверять бесплатные раздачи Epic/Steam (по умолчанию каждые 2 часа) и регион Epic
 - `MUSIC_LEAVE_DELAY_SECONDS` — через сколько секунд бот выходит из голосового канала после конца очереди (по умолчанию 30)
 - `STEAM_API_KEY` — опционально, для точного «всего часов в Dota 2» как в Steam
@@ -86,6 +87,8 @@ npm start
 Ежедневно (`DOTA_CRON`) бот сам шлёт статистику по `DOTA_DEFAULT_ACCOUNT_ID`: ранг, W/L, часов всего, сколько сыграно **сегодня**, время и результат **последнего матча**. «Последний запуск» определяется по последнему сыгранному матчу — запуск клиента без матча OpenDota не видит.
 
 **Напоминание «пора играть».** Каждый день в `DOTA_ALERT_CRON` (по умолчанию 13:00) бот считает, сколько сыграно сегодня по `DOTA_ALERT_ACCOUNT_ID`. Если меньше `DOTA_ALERT_MIN_HOURS` часов — пингует `DOTA_ALERT_USER_ID` (это Discord ID) напоминанием «СЕГОДНЯ ДЛИТЕЛЬНОСТЬ ИГРЫ В ДОТУ … критически низкое значение…», если не меньше — хвалит («Норма выполнена, так держать»). Если у OpenDota нет данных по аккаунту (скрытый профиль), напоминание пропускается, чтобы не пинговать зря.
+
+**Отсутствие в сети.** Каждый день в `OFFLINE_ALERT_CRON` (по умолчанию 12:00) бот пишет в `NOTIFY_CHANNEL_ID`, сколько дней подряд пользователей из `OFFLINE_ALERT_USER_IDS` (Discord ID через запятую) нет в сети, если это не меньше `OFFLINE_ALERT_MIN_DAYS` полных суток. Нужен включённый Presence Intent (см. раздел 2). Discord не хранит историю присутствия, поэтому бот сам отмечает момент, когда пользователь ушёл офлайн (файл `data/offline-since.json`): при первом запуске отсчёт идёт с запуска бота, а тот, кто сидит в невидимке, считается офлайн.
 
 `account_id` — это **Steam32 ID** (например, из ссылки `opendota.com/players/123456789` или `dotabuff.com/players/123456789`), а не SteamID64 и не ссылка на профиль Steam. SteamID64 бот тоже понимает и сам сконвертирует.
 

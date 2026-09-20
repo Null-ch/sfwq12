@@ -46,6 +46,14 @@ function loadConfig(env = process.env, { rootDir = path.join(__dirname, '..') } 
       cron: env.WEATHER_CRON || '0 8 * * *',
       timezone: env.WEATHER_TIMEZONE || 'Europe/Moscow',
     },
+    offlineAlert: {
+      // Discord ID пользователей через запятую, за чьим отсутствием в сети следит бот.
+      userIds: parseList(env.OFFLINE_ALERT_USER_IDS),
+      // С какого числа полных дней без появления в сети начинать писать в канал.
+      minDays: Number(env.OFFLINE_ALERT_MIN_DAYS ?? 1),
+      cron: env.OFFLINE_ALERT_CRON || '0 12 * * *',
+      timezone: env.OFFLINE_ALERT_TIMEZONE || env.WEATHER_TIMEZONE || 'Europe/Moscow',
+    },
     dota: {
       defaultAccountId: env.DOTA_DEFAULT_ACCOUNT_ID || null,
       cron: env.DOTA_CRON || '0 23 * * *',
