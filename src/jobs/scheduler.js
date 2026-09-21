@@ -18,6 +18,12 @@ function registerJob(client, job, { scheduler = cron } = {}) {
     return false;
   }
 
+  // Иначе node-cron падает TypeError'ом на старте и весь бот уходит в цикл перезапусков.
+  if (!scheduler.validate(job.cron)) {
+    console.warn(`⚠️ Задача "${job.name}" отключена: некорректное cron-выражение "${job.cron}".`);
+    return false;
+  }
+
   const task = async () => {
     try {
       await job.run(client);
