@@ -55,8 +55,9 @@ function loadConfig(env = process.env, { rootDir = path.join(__dirname, '..') } 
       timezone: env.OFFLINE_ALERT_TIMEZONE || env.WEATHER_TIMEZONE || 'Europe/Moscow',
     },
     minecraft: {
-      // Базовый URL и токен link-server из репозитория minecraft-server (сервис link-server
-      // в его docker-compose.yml): бессрочные ссылки на свежий бэкап (/latest) и клиент-пак (/client).
+      // Базовый URL (домен за caddy из репозитория minecraft-server) и пароль HTTP Basic
+      // Auth (логин на стороне caddy зашит как "mc") - бессрочные "чистые" ссылки на свежий
+      // бэкап (/backup) и клиент-пак (/client), без токена в query.
       linkBaseUrl: env.MINECRAFT_LINK_BASE_URL || null,
       linkToken: env.MINECRAFT_LINK_TOKEN || null,
       // Опционально: если задан, /minecraft работает только в этом канале.

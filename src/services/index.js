@@ -56,9 +56,15 @@ function createServices(config) {
   });
 
   const minecraftLink = createMinecraftLinkService({
-    http: createHttpClient({ timeoutMs: 30_000 }),
+    http: createHttpClient({
+      timeoutMs: 30_000,
+      // Basic Auth к caddy (логин "mc" зашит в Caddyfile) - пароль в заголовке,
+      // не в URL, поэтому ссылки, которые бот показывает в Discord, остаются чистыми.
+      headers: config.minecraft.linkToken
+        ? { Authorization: `Basic ${Buffer.from(`mc:${config.minecraft.linkToken}`).toString('base64')}` }
+        : undefined,
+    }),
     baseUrl: config.minecraft.linkBaseUrl,
-    token: config.minecraft.linkToken,
   });
 
   return { weather, dota, dotaAlert, dotaLinks, freeGames, freeGamesStore, onlineTracker, minecraftLink };

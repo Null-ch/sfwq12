@@ -51,7 +51,7 @@ cp .env.example .env
 - `MUSIC_LEAVE_DELAY_SECONDS` — через сколько секунд бот выходит из голосового канала после конца очереди (по умолчанию 30)
 - `STEAM_API_KEY` — опционально, для точного «всего часов в Dota 2» как в Steam
 - `DATA_DIR` — опционально, где хранить JSON-файлы состояния (по умолчанию `./data`; в Docker это примонтированный volume)
-- `MINECRAFT_LINK_BASE_URL`, `MINECRAFT_LINK_TOKEN` — адрес и токен `link-server` из репозитория `minecraft-server` (те же значения, что там в `.env`: `BACKUP_SERVER_PORT`/`BACKUP_LINK_TOKEN`), нужны для `/minecraft`
+- `MINECRAFT_LINK_BASE_URL`, `MINECRAFT_LINK_TOKEN` — домен и пароль (Basic Auth, логин `mc`) из репозитория `minecraft-server` (`LINK_DOMAIN`/`BACKUP_LINK_TOKEN` там в `.env`), нужны для `/minecraft`
 - `MINECRAFT_CHANNEL_ID` — опционально, ограничивает `/minecraft` одним каналом
 - `MINECRAFT_CLIENT_ATTACH_MAX_MB` — максимальный размер клиент-пака для отправки файлом вместо ссылки (по умолчанию 8 МБ)
 
@@ -97,7 +97,8 @@ npm start
 - `/minecraft backup` — бессрочная ссылка на самый свежий бэкап мира (размер и время бэкапа в карточке)
 - `/minecraft client` — клиент-пак для игры на сервере (Forge-инсталлятор + моды + инструкция в README.txt): если пак не больше `MINECRAFT_CLIENT_ATTACH_MAX_MB`, бот присылает его файлом прямо в Discord, иначе — ссылкой
 - Требует `MINECRAFT_LINK_BASE_URL`/`MINECRAFT_LINK_TOKEN` (см. раздел 3); без них команда отвечает, что не настроена
-- Ссылки отдаёт `link-server` из репозитория `minecraft-server` — он же следит, что `/latest` всегда указывает на самый новый бэкап, без участия бота
+- Ссылки чистые, без токена (`https://<домен>/backup`, `https://<домен>/client`) — авторизация через HTTP Basic Auth, пароль бот в чат не пишет
+- Отдаёт `minecraft-server` (link-server за caddy) — он же следит, что `/backup` всегда указывает на самый новый бэкап, без участия бота
 
 `account_id` — это **Steam32 ID** (например, из ссылки `opendota.com/players/123456789` или `dotabuff.com/players/123456789`), а не SteamID64 и не ссылка на профиль Steam. SteamID64 бот тоже понимает и сам сконвертирует.
 

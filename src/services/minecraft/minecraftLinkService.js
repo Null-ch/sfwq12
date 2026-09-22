@@ -1,17 +1,16 @@
 const { HttpError } = require('../../core/http');
 
 /**
- * Клиент к link-server из репозитория minecraft-server: отдаёт по токену самый свежий
- * бэкап мира (/latest) и собранный клиент-пак с модами (/client). Ссылки бессрочные -
- * link-server сам резолвит "самое свежее" на момент запроса, здесь только HTTP-обвязка.
+ * Клиент к link-server из репозитория minecraft-server (за caddy): отдаёт самый свежий
+ * бэкап мира (/backup) и собранный клиент-пак с модами (/client). Ссылки бессрочные и
+ * "чистые" (без токена в query) - авторизация через HTTP Basic Auth, заголовок уже
+ * зашит в переданный http-клиент (см. services/index.js), здесь только HTTP-обвязка.
  */
-function createMinecraftLinkService({ http, baseUrl, token }) {
-  const configured = Boolean(baseUrl && token);
+function createMinecraftLinkService({ http, baseUrl }) {
+  const configured = Boolean(baseUrl);
 
   function buildUrl(pathname) {
-    const url = new URL(pathname, baseUrl);
-    url.searchParams.set('token', token);
-    return url;
+    return new URL(pathname, baseUrl);
   }
 
   async function head(pathname) {
@@ -33,7 +32,7 @@ function createMinecraftLinkService({ http, baseUrl, token }) {
   }
 
   function getBackupInfo() {
-    return head('/latest');
+    return head('/backup');
   }
 
   function getClientPackInfo() {
