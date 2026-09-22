@@ -5,11 +5,13 @@ const COLORS = {
   success: 0x57f287,
   weather: 0x00aaff,
   dota: 0xa9302a,
+  minecraft: 0x3b8526,
 };
 
 const FOOTERS = {
   weather: 'Данные: АХУЕННЫЙ ВИДЖЕТ ПОГОДЫ',
   dota: 'Данные: АХУЕННЫЙ ВИДЖЕТ ДОТЫ',
+  minecraft: 'Данные: АХУЕННЫЙ ВИДЖЕТ МАЙНКРАФТА',
 };
 
 module.exports = { COLORS, FOOTERS };

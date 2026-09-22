@@ -13,6 +13,7 @@ const { createGamerPowerClient } = require('./freeGames/sources/gamerPower');
 const { createFreeGamesService } = require('./freeGames/freeGamesService');
 const { createFreeGamesStore } = require('./freeGames/freeGamesStore');
 const { createOnlineTracker } = require('./presence/onlineTracker');
+const { createMinecraftLinkService } = require('./minecraft/minecraftLinkService');
 
 /**
  * Единственное место, где конкретные реализации сервисов связываются между собой
@@ -54,7 +55,13 @@ function createServices(config) {
     userIds: config.offlineAlert.userIds,
   });
 
-  return { weather, dota, dotaAlert, dotaLinks, freeGames, freeGamesStore, onlineTracker };
+  const minecraftLink = createMinecraftLinkService({
+    http: createHttpClient({ timeoutMs: 30_000 }),
+    baseUrl: config.minecraft.linkBaseUrl,
+    token: config.minecraft.linkToken,
+  });
+
+  return { weather, dota, dotaAlert, dotaLinks, freeGames, freeGamesStore, onlineTracker, minecraftLink };
 }
 
 module.exports = { createServices };

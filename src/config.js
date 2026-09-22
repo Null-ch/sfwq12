@@ -54,6 +54,17 @@ function loadConfig(env = process.env, { rootDir = path.join(__dirname, '..') } 
       cron: env.OFFLINE_ALERT_CRON || '0 12 * * *',
       timezone: env.OFFLINE_ALERT_TIMEZONE || env.WEATHER_TIMEZONE || 'Europe/Moscow',
     },
+    minecraft: {
+      // Базовый URL и токен link-server из репозитория minecraft-server (сервис link-server
+      // в его docker-compose.yml): бессрочные ссылки на свежий бэкап (/latest) и клиент-пак (/client).
+      linkBaseUrl: env.MINECRAFT_LINK_BASE_URL || null,
+      linkToken: env.MINECRAFT_LINK_TOKEN || null,
+      // Опционально: если задан, /minecraft работает только в этом канале.
+      channelId: env.MINECRAFT_CHANNEL_ID || null,
+      // Клиент-пак прикладывается файлом к ответу, только если он не больше этого размера
+      // (иначе просто ссылка) - лимит вложений Discord у небустнутых серверов начинается от 10 МБ.
+      clientAttachMaxBytes: Number(env.MINECRAFT_CLIENT_ATTACH_MAX_MB ?? 8) * 1024 * 1024,
+    },
     dota: {
       defaultAccountId: env.DOTA_DEFAULT_ACCOUNT_ID || null,
       cron: env.DOTA_CRON || '0 23 * * *',

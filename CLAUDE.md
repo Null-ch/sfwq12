@@ -25,6 +25,7 @@ Composition root — [src/app.js](src/app.js) (`createApp(config).start()`); с�
 | `src/services/dota/` | `openDotaClient`, `steamClient` (транспорт); `accountId`, `rank`, `matches`, `format` (чистая логика); `dotaService`, `dotaAlert`, `dotaAlertMessages`, `dotaEmbed`, `dotaLinks` |
 | `src/services/freeGames/` | `sources/{epic,steam,gamerPower}.js`, `freeGamesService` (список источников), `freeGamesStore`, `freeGamesEmbed` |
 | `src/services/presence/` | `onlineTracker` (кто с какого момента офлайн, состояние в `offline-since.json`), `offlineMessages` |
+| `src/services/minecraft/` | `minecraftLinkService` (HTTP-клиент к `link-server` из репозитория `minecraft-server`: бессрочные `/latest` бэкап и `/client` клиент-пак по токену), `minecraftEmbed`, `format` (байты) |
 | `src/jobs/` | `scheduler.js` (`registerJob`), `index.js` (список задач), по файлу на задачу — фабрика, возвращающая описание `{ name, disabledReason, cron, timezone, run, ... }` |
 
 ## Как расширять
