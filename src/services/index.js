@@ -56,12 +56,11 @@ function createServices(config) {
   });
 
   const minecraftLink = createMinecraftLinkService({
+    // link-server проверяет пароль заголовком X-Download-Password для программного
+    // доступа (у людей вместо этого своя HTML-форма на /backup/file и /client/file).
     http: createHttpClient({
       timeoutMs: 30_000,
-      // Basic Auth к caddy для /backup/file и /client/file (логин "mc" зашит в Caddyfile).
-      headers: config.minecraft.downloadPassword
-        ? { Authorization: `Basic ${Buffer.from(`mc:${config.minecraft.downloadPassword}`).toString('base64')}` }
-        : undefined,
+      headers: config.minecraft.downloadPassword ? { 'X-Download-Password': config.minecraft.downloadPassword } : undefined,
     }),
     baseUrl: config.minecraft.linkBaseUrl,
   });
