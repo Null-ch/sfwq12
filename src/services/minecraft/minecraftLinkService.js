@@ -2,9 +2,10 @@ const { HttpError } = require('../../core/http');
 
 /**
  * Клиент к link-server из репозитория minecraft-server (за caddy): отдаёт самый свежий
- * бэкап мира (/backup) и собранный клиент-пак с модами (/client). Ссылки бессрочные и
- * "чистые" (без токена в query) - авторизация через HTTP Basic Auth, заголовок уже
- * зашит в переданный http-клиент (см. services/index.js), здесь только HTTP-обвязка.
+ * бэкап мира и собранный клиент-пак с модами. Ссылки бессрочные и открытые (без токена
+ * и без пароля - доступ по знанию ссылки). Для метаданных/скачивания используются
+ * "файловые" пути (/backup/file, /client/file), а пользователю в Discord показывается
+ * красивая HTML-страница-заглушка (/backup, /client), которая сама начинает скачивание.
  */
 function createMinecraftLinkService({ http, baseUrl }) {
   const configured = Boolean(baseUrl);
@@ -13,34 +14,34 @@ function createMinecraftLinkService({ http, baseUrl }) {
     return new URL(pathname, baseUrl);
   }
 
-  async function head(pathname) {
-    const url = buildUrl(pathname);
-    const res = await http.request(url, { method: 'HEAD' });
+  async function head(filePathname, displayPathname) {
+    const fileUrl = buildUrl(filePathname);
+    const res = await http.request(fileUrl, { method: 'HEAD' });
     if (res.status === 404) return null;
     if (!res.ok) {
-      throw new HttpError(`link-server ответил HTTP ${res.status} на ${pathname}`, {
-        url: url.toString(),
+      throw new HttpError(`link-server ответил HTTP ${res.status} на ${filePathname}`, {
+        url: fileUrl.toString(),
         status: res.status,
       });
     }
     const lastModifiedHeader = res.headers.get('last-modified');
     return {
-      url: url.toString(),
+      url: buildUrl(displayPathname).toString(),
       size: Number(res.headers.get('content-length')) || null,
       lastModified: lastModifiedHeader ? new Date(lastModifiedHeader) : null,
     };
   }
 
   function getBackupInfo() {
-    return head('/backup');
+    return head('/backup/file', '/backup');
   }
 
   function getClientPackInfo() {
-    return head('/client');
+    return head('/client/file', '/client');
   }
 
   async function fetchClientPack() {
-    const url = buildUrl('/client');
+    const url = buildUrl('/client/file');
     const res = await http.request(url);
     if (res.status === 404) return null;
     if (!res.ok) {

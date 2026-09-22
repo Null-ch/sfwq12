@@ -55,11 +55,13 @@ function loadConfig(env = process.env, { rootDir = path.join(__dirname, '..') } 
       timezone: env.OFFLINE_ALERT_TIMEZONE || env.WEATHER_TIMEZONE || 'Europe/Moscow',
     },
     minecraft: {
-      // Базовый URL (домен за caddy из репозитория minecraft-server) и пароль HTTP Basic
-      // Auth (логин на стороне caddy зашит как "mc") - бессрочные "чистые" ссылки на свежий
-      // бэкап (/backup) и клиент-пак (/client), без токена в query.
+      // Базовый URL (домен за caddy из репозитория minecraft-server) - бессрочные ссылки
+      // на свежий бэкап (/backup) и клиент-пак (/client). Страницы открыты всем, а сами
+      // файлы просят пароль (Basic Auth, логин "mc") - бот пишет пароль прямо в Discord.
       linkBaseUrl: env.MINECRAFT_LINK_BASE_URL || null,
-      linkToken: env.MINECRAFT_LINK_TOKEN || null,
+      // = DOWNLOAD_PASSWORD на стороне minecraft-server. Простой, не секретный -
+      // печатается в ответах бота, чтобы не переспрашивать администратора каждый раз.
+      downloadPassword: env.MINECRAFT_DOWNLOAD_PASSWORD || null,
       // Опционально: если задан, /minecraft работает только в этом канале.
       channelId: env.MINECRAFT_CHANNEL_ID || null,
       // Клиент-пак прикладывается файлом к ответу, только если он не больше этого размера

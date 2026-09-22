@@ -2,8 +2,7 @@ const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
 const { buildBackupEmbed, buildClientLinkEmbed } = require('../services/minecraft/minecraftEmbed');
 const { EPHEMERAL } = require('../core/ephemeral');
 
-const NOT_CONFIGURED =
-  '❌ Ссылки на Minecraft-сервер не настроены (нужны MINECRAFT_LINK_BASE_URL и MINECRAFT_LINK_TOKEN в .env).';
+const NOT_CONFIGURED = '❌ Ссылки на Minecraft-сервер не настроены (нужен MINECRAFT_LINK_BASE_URL в .env).';
 
 module.exports = ({ config, services }) => {
   const { minecraftLink } = services;
@@ -19,7 +18,7 @@ module.exports = ({ config, services }) => {
     await interaction.deferReply();
     const info = await minecraftLink.getBackupInfo();
     if (!info) return interaction.editReply('❌ Бэкапов пока нет — сервер `backup` ещё не успел ни одного сделать.');
-    return interaction.editReply({ embeds: [buildBackupEmbed(info)] });
+    return interaction.editReply({ embeds: [buildBackupEmbed(info, config.minecraft.downloadPassword)] });
   }
 
   async function client(interaction) {
@@ -41,7 +40,7 @@ module.exports = ({ config, services }) => {
     }
 
     // Слишком большой для вложения (или размер неизвестен) - просто ссылка.
-    return interaction.editReply({ embeds: [buildClientLinkEmbed(info)] });
+    return interaction.editReply({ embeds: [buildClientLinkEmbed(info, config.minecraft.downloadPassword)] });
   }
 
   const handlers = { backup, client };
@@ -54,7 +53,7 @@ module.exports = ({ config, services }) => {
       .addSubcommand((sub) => sub.setName('client').setDescription('Скачать клиент (Forge + моды) для игры на сервере')),
 
     async execute(interaction) {
-      if (!config.minecraft.linkBaseUrl || !config.minecraft.linkToken) {
+      if (!config.minecraft.linkBaseUrl) {
         return interaction.reply({ content: NOT_CONFIGURED, ...EPHEMERAL });
       }
       if (!checkChannel(interaction)) {
