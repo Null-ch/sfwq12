@@ -9,16 +9,13 @@ function baseEmbed(title) {
 
 /** При скачивании файла (не самой страницы) caddy спросит логин/пароль - показываем их. */
 function authField(password) {
-  return { name: 'Пароль для скачивания', value: `Логин: \`mc\`\nПароль: \`${password}\`` };
+  return { name: 'Пароль для скачивания', value: `Пароль: \`${password}\`` };
 }
 
 /** Карточка с бессрочной ссылкой на самый свежий бэкап мира. */
 function buildBackupEmbed(info, password) {
   const embed = baseEmbed('🗄️ Бэкап мира').addFields({ name: 'Ссылка', value: info.url });
   if (info.size != null) embed.addFields({ name: 'Размер', value: formatBytes(info.size), inline: true });
-  if (info.lastModified) {
-    embed.addFields({ name: 'Сделан', value: discordTime(info.lastModified, 'R'), inline: true });
-  }
   if (password) embed.addFields(authField(password));
   return embed;
 }
