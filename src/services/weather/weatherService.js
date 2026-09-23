@@ -6,7 +6,11 @@ const { describeCode } = require('./weatherCodes');
 
 const weatherHttpError = (url, status) => `Запрос ${url} завершился со статусом ${status}`;
 
-function createWeatherService({ http = createHttpClient({ errorMessage: weatherHttpError }) } = {}) {
+// Open-Meteo периодически отдаёт разовые 503 - утренняя рассылка не должна из-за этого терять город.
+const createWeatherHttp = () =>
+  createHttpClient({ errorMessage: weatherHttpError, timeoutMs: 10_000, retries: 3, retryDelayMs: 2000 });
+
+function createWeatherService({ http = createWeatherHttp() } = {}) {
   async function geocodeCity(city) {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=ru&format=json`;
     const data = await http.getJson(url);
