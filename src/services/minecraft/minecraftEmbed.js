@@ -22,7 +22,7 @@ function buildBackupEmbed(info, password) {
 
 /** Карточка с ссылкой на клиент-пак, когда он слишком большой, чтобы прикрепить файлом. */
 function buildClientLinkEmbed(info, password) {
-  const embed = baseEmbed('📦 Клиент-пак (Forge + моды)')
+  const embed = baseEmbed('📦 Клиент-пак (jar файл + инструкция + моды)')
     .addFields({ name: 'Ссылка', value: info.url })
     .addFields({ name: 'Размер', value: formatBytes(info.size), inline: true });
   if (password) embed.addFields(authField(password));
