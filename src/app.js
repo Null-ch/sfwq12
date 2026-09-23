@@ -34,6 +34,7 @@ function createApp(config) {
   const ctx = { config, services };
 
   client.commands = new Collection(loadCommands(ctx));
+  client.buttonHandlers = [services.minecraftApplications.review.buttons];
   registerClientEvents(client);
 
   if (trackPresence) {

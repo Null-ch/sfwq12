@@ -2,8 +2,9 @@ const musicButtons = require('../music/buttons');
 const { EPHEMERAL } = require('../core/ephemeral');
 
 // Обработчики кнопок: { matches(interaction), handle(interaction), errorLabel }.
-// Новая группа кнопок подключается добавлением сюда одного модуля.
-const buttonHandlers = [musicButtons];
+// Новая группа кнопок подключается добавлением сюда одного модуля. Кнопки, которым
+// нужны сервисы, собираются в app.js и лежат в client.buttonHandlers (как client.commands).
+const staticButtonHandlers = [musicButtons];
 
 async function handleButton(interaction, handler) {
   try {
@@ -37,6 +38,7 @@ async function handleCommand(interaction) {
 module.exports = {
   name: 'interactionCreate',
   async execute(interaction) {
+    const buttonHandlers = [...staticButtonHandlers, ...(interaction.client.buttonHandlers ?? [])];
     const buttonHandler = buttonHandlers.find((handler) => handler.matches(interaction));
     if (buttonHandler) return handleButton(interaction, buttonHandler);
 

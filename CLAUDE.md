@@ -25,7 +25,7 @@ Composition root — [src/app.js](src/app.js) (`createApp(config).start()`); с�
 | `src/services/dota/` | `openDotaClient`, `steamClient` (транспорт); `accountId`, `rank`, `matches`, `format` (чистая логика); `dotaService`, `dotaAlert`, `dotaAlertMessages`, `dotaEmbed`, `dotaLinks` |
 | `src/services/freeGames/` | `sources/{epic,steam,gamerPower}.js`, `freeGamesService` (список источников), `freeGamesStore`, `freeGamesEmbed` |
 | `src/services/presence/` | `onlineTracker` (кто с какого момента офлайн, состояние в `offline-since.json`), `offlineMessages` |
-| `src/services/minecraft/` | `minecraftLinkService` (HTTP-клиент к домену `minecraft-server` за caddy: открытые страницы `/backup`/`/client`, файлы `/backup/file`+`/client/file` защищены Basic Auth - пароль в заголовке), `minecraftEmbed`, `format` (байты) |
+| `src/services/minecraft/` | `minecraftLinkService` (HTTP-клиент к домену `minecraft-server` за caddy: открытые страницы `/backup`/`/client`, файлы `/backup/file`+`/client/file` защищены Basic Auth - пароль в заголовке), `minecraftEmbed`, `format` (байты); заявки на игру: `minecraftApplicationsService` (API `/api/applications` link-server, Bearer-токен), `applicationReview` (рассылка в личку одобряющим + кнопки `mcapp:`), `applicationEmbed` |
 | `src/jobs/` | `scheduler.js` (`registerJob`), `index.js` (список задач), по файлу на задачу — фабрика, возвращающая описание `{ name, disabledReason, cron, timezone, run, ... }` |
 
 ## Как расширять
@@ -33,7 +33,7 @@ Composition root — [src/app.js](src/app.js) (`createApp(config).start()`); с�
 - **Команда:** новый файл в `src/commands/` с фабрикой (для команд очереди — `createQueueCommand`). Регистрация автоматическая; после изменения `data` нужен `deploy-commands`.
 - **Источник раздач:** объект `{ name, fetchGames() }` в списке `sources` в `services/index.js`.
 - **Фоновая задача:** фабрика в `src/jobs/` + строка в `JOB_FACTORIES` (`jobs/index.js`).
-- **Кнопки:** модуль `{ matches, handle, errorLabel }` в `buttonHandlers` (`events/interactionCreate.js`).
+- **Кнопки:** модуль `{ matches, handle, errorLabel }` в `staticButtonHandlers` (`events/interactionCreate.js`); если кнопкам нужны сервисы — собрать в `app.js` и добавить в `client.buttonHandlers`.
 - **Переменная окружения:** добавить в `loadConfig`, в `.env.example` и в раздел 3 README.
 
 ## Конвенции
@@ -41,7 +41,7 @@ Composition root — [src/app.js](src/app.js) (`createApp(config).start()`); с�
 - CommonJS, 2 пробела, одинарные кавычки, `;`, комментарии на русском и только там, где объясняют «почему».
 - Пользовательские тексты (ответы, ошибки, логи) — русские и часто попадают в UI: при рефакторинге не менять их дословно (футеры «АХУЕННЫЙ ВИДЖЕТ …» — намеренные).
 - Ошибки внешних API отдаёт сервис через `errorMessage` своего `createHttpClient`; пользователь видит `error.message`.
-- Состояние хранится в JSON в `data/` (`DATA_DIR`): `dota-links.json`, `free-games.json`, `offline-since.json` (в git не попадает).
+- Состояние хранится в JSON в `data/` (`DATA_DIR`): `dota-links.json`, `free-games.json`, `offline-since.json`, `minecraft-applications.json` (в git не попадает).
 - Интент `GuildPresences` (привилегированный) запрашивается в `app.js` только при непустом `OFFLINE_ALERT_USER_IDS`.
 
 ## Особенности

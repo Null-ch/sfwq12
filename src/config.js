@@ -67,6 +67,13 @@ function loadConfig(env = process.env, { rootDir = path.join(__dirname, '..') } 
       // Клиент-пак прикладывается файлом к ответу, только если он не больше этого размера
       // (иначе просто ссылка) - лимит вложений Discord у небустнутых серверов начинается от 10 МБ.
       clientAttachMaxBytes: Number(env.MINECRAFT_CLIENT_ATTACH_MAX_MB ?? 8) * 1024 * 1024,
+      // Заявки на игру (whitelist): = BOT_API_TOKEN на стороне minecraft-server. В отличие
+      // от пароля на скачивание - секрет: с ним можно добавить любого в whitelist.
+      apiToken: env.MINECRAFT_API_TOKEN || null,
+      // Discord ID тех, кому в личку приходят заявки с кнопками "Одобрить/Отклонить".
+      approverIds: parseList(env.MINECRAFT_APPROVER_IDS),
+      // Как часто забирать новые заявки (в том числе поданные с сайта) - с секундами.
+      applicationsCron: env.MINECRAFT_APPLICATIONS_CRON || '*/30 * * * * *',
     },
     dota: {
       defaultAccountId: env.DOTA_DEFAULT_ACCOUNT_ID || null,

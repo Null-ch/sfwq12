@@ -14,6 +14,8 @@ const { createFreeGamesService } = require('./freeGames/freeGamesService');
 const { createFreeGamesStore } = require('./freeGames/freeGamesStore');
 const { createOnlineTracker } = require('./presence/onlineTracker');
 const { createMinecraftLinkService } = require('./minecraft/minecraftLinkService');
+const { createMinecraftApplicationsService } = require('./minecraft/minecraftApplicationsService');
+const { createApplicationReview } = require('./minecraft/applicationReview');
 
 /**
  * Единственное место, где конкретные реализации сервисов связываются между собой
@@ -65,7 +67,35 @@ function createServices(config) {
     baseUrl: config.minecraft.linkBaseUrl,
   });
 
-  return { weather, dota, dotaAlert, dotaLinks, freeGames, freeGamesStore, onlineTracker, minecraftLink };
+  const { apiToken, approverIds } = config.minecraft;
+  const applicationsApi = createMinecraftApplicationsService({
+    http: createHttpClient({
+      timeoutMs: 15_000,
+      headers: apiToken ? { Authorization: `Bearer ${apiToken}` } : undefined,
+    }),
+    baseUrl: config.minecraft.linkBaseUrl,
+    apiToken,
+  });
+  const minecraftApplications = {
+    api: applicationsApi,
+    review: createApplicationReview({
+      applications: applicationsApi,
+      store: createJsonFileStore(path.join(config.paths.dataDir, 'minecraft-applications.json')),
+      approverIds,
+    }),
+  };
+
+  return {
+    weather,
+    dota,
+    dotaAlert,
+    dotaLinks,
+    freeGames,
+    freeGamesStore,
+    onlineTracker,
+    minecraftLink,
+    minecraftApplications,
+  };
 }
 
 module.exports = { createServices };

@@ -15,12 +15,13 @@ class HttpError extends Error {
 function createHttpClient({ fetchImpl, headers, timeoutMs, errorMessage } = {}) {
   const describeError = errorMessage ?? ((url, status) => `HTTP ${status}: ${url}`);
 
-  /** Сырой запрос: статус не проверяется. */
-  function request(url, { method } = {}) {
+  /** Сырой запрос: статус не проверяется. json - тело запроса, отправляется как JSON. */
+  function request(url, { method, json } = {}) {
     const doFetch = fetchImpl ?? globalThis.fetch;
     return doFetch(url, {
       ...(method && { method }),
-      headers,
+      headers: json === undefined ? headers : { ...headers, 'Content-Type': 'application/json' },
+      ...(json !== undefined && { body: JSON.stringify(json) }),
       signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
     });
   }
