@@ -3,7 +3,6 @@ const { createDailyWeatherJob } = require('./dailyWeather');
 const { createDailyDotaJob } = require('./dailyDota');
 const { createDotaAlertJob } = require('./dailyDotaAlert');
 const { createFreeGamesJob } = require('./freeGames');
-const { createOfflineAlertJob } = require('./offlineAlert');
 const { createMinecraftApplicationsJob } = require('./minecraftApplications');
 
 // Чтобы добавить фоновую задачу, достаточно описать её фабрикой и дописать сюда.
@@ -12,7 +11,6 @@ const JOB_FACTORIES = [
   createDailyDotaJob,
   createDotaAlertJob,
   createFreeGamesJob,
-  createOfflineAlertJob,
   createMinecraftApplicationsJob,
 ];
 

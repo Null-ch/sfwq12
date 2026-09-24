@@ -52,11 +52,6 @@ function createServices(config) {
     createJsonFileStore(path.join(config.paths.dataDir, 'free-games.json')),
   );
 
-  const onlineTracker = createOnlineTracker({
-    store: createJsonFileStore(path.join(config.paths.dataDir, 'offline-since.json')),
-    userIds: config.offlineAlert.userIds,
-  });
-
   const minecraftLink = createMinecraftLinkService({
     // link-server проверяет пароль заголовком X-Download-Password для программного
     // доступа (у людей вместо этого своя HTML-форма на /backup/file и /client/file).

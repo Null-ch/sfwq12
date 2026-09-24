@@ -21,15 +21,11 @@ function registerClientEvents(client) {
  * и события. Ничего не подключается к Discord, пока не вызван start().
  */
 function createApp(config) {
-  const trackPresence = config.offlineAlert.userIds.length > 0;
 
   // GuildPresences - привилегированный интент (включается в Developer Portal), поэтому
   // запрашиваем его, только если задан OFFLINE_ALERT_USER_IDS: иначе бот не залогинится без него.
   const intents = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates];
-  if (trackPresence) intents.push(GatewayIntentBits.GuildPresences);
-
   const client = new Client({ intents });
-
   const services = createServices(config);
   const ctx = { config, services };
 
@@ -37,17 +33,9 @@ function createApp(config) {
   client.buttonHandlers = [services.minecraftApplications.review.buttons];
   registerClientEvents(client);
 
-  if (trackPresence) {
-    client.on('presenceUpdate', (_, presence) => services.onlineTracker.handlePresence(presence));
-    // Кэш присутствия заполняется при подключении к серверам: сразу фиксируем, кто уже в сети.
-    client.once('clientReady', () => services.onlineTracker.syncFromClient(client));
-  }
-
   const player = new Player(client);
 
   async function start() {
-    // Сначала наш YouTube (через yt-dlp), затем встроенные экстракторы
-    // (Spotify, SoundCloud, Apple Music, Vimeo, вложения).
     await player.extractors.register(YtDlpExtractor, { ytdlp: createYtDlp(config.ytdlp) });
     await player.extractors.loadMulti(DefaultExtractors);
 
