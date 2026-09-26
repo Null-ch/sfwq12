@@ -12,7 +12,6 @@ const { createSteamSource } = require('./freeGames/sources/steam');
 const { createGamerPowerClient } = require('./freeGames/sources/gamerPower');
 const { createFreeGamesService } = require('./freeGames/freeGamesService');
 const { createFreeGamesStore } = require('./freeGames/freeGamesStore');
-const { createOnlineTracker } = require('./presence/onlineTracker');
 const { createMinecraftLinkService } = require('./minecraft/minecraftLinkService');
 const { createMinecraftApplicationsService } = require('./minecraft/minecraftApplicationsService');
 const { createApplicationReview } = require('./minecraft/applicationReview');
@@ -87,7 +86,6 @@ function createServices(config) {
     dotaLinks,
     freeGames,
     freeGamesStore,
-    onlineTracker,
     minecraftLink,
     minecraftApplications,
   };
