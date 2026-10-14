@@ -4,6 +4,24 @@ function createMinecraftApplicationsJob({ config, services }) {
 
   const configured = api.configured && approverIds.length > 0;
 
+  // Опрос идёт каждые 30 секунд: пока link-server недоступен, пишем в лог только
+  // начало и конец сбоя, а не стектрейс на каждый запуск.
+  let failing = false;
+  async function run(client) {
+    try {
+      await review.notifyNew(client);
+    } catch (error) {
+      if (!failing) {
+        console.error('Не удалось забрать заявки на Minecraft-сервер:', error);
+        console.warn('⚠️ Повторные ошибки опроса заявок не логируются до восстановления связи.');
+      }
+      failing = true;
+      return;
+    }
+    if (failing) console.log('✅ Связь с link-server восстановлена, заявки снова забираются.');
+    failing = false;
+  }
+
   return {
     name: 'minecraft-applications',
     disabledReason: configured
@@ -13,7 +31,7 @@ function createMinecraftApplicationsJob({ config, services }) {
     runOnReady: true,
     errorMessage: 'Не удалось забрать заявки на Minecraft-сервер:',
     startedMessage: `🎮 Заявки на Minecraft-сервер: проверка по cron "${cron}", одобряющих: ${approverIds.length}.`,
-    run: (client) => review.notifyNew(client),
+    run,
   };
 }
 

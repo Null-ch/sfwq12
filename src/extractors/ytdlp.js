@@ -1,5 +1,7 @@
 const childProcess = require('child_process');
 
+const FALLBACK_CLIENTS = 'web_embedded,mweb';
+
 /** Разбирает вывод yt-dlp -j: по одному JSON-объекту в строке, битые строки пропускаются. */
 function parseJsonLines(stdout) {
   return stdout
@@ -65,10 +67,11 @@ function createYtDlp({ binaryPath = 'yt-dlp', cookiesPath = null, spawn } = {}) 
    * Промис резолвится только когда пошли первые байты: если YouTube сразу отказал (403 и т.п.),
    * ошибка уходит в discord-player как ошибка трека, а не теряется внутри уже запущенного потока.
    */
-  function createAudioStream(url) {
+  function spawnAudioStream(url, extraArgs = []) {
     const proc = doSpawn(
       [
         ...baseArgs(),
+        ...extraArgs,
         url,
         '-f',
         'bestaudio[acodec!=none]/bestaudio/best',
@@ -124,6 +127,19 @@ function createYtDlp({ binaryPath = 'yt-dlp', cookiesPath = null, spawn } = {}) 
         }
       });
     });
+  }
+
+  /**
+   * С IP хостингов YouTube иногда отдаёт ссылку, по которой сам же отвечает 403 (чаще всего
+   * от клиента android_vr). Повтор с другими клиентами обычно проходит.
+   */
+  async function createAudioStream(url) {
+    try {
+      return await spawnAudioStream(url);
+    } catch (error) {
+      console.warn(`[yt-dlp stream] повтор с клиентами ${FALLBACK_CLIENTS}: ${error.message}`);
+      return spawnAudioStream(url, ['--extractor-args', `youtube:player_client=${FALLBACK_CLIENTS}`]);
+    }
   }
 
   return { runJson, runJsonLines, createAudioStream };
