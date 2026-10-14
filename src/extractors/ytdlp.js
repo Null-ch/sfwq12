@@ -60,7 +60,11 @@ function createYtDlp({ binaryPath = 'yt-dlp', cookiesPath = null, spawn } = {}) 
     return parseJsonLines(await runJson(args));
   }
 
-  /** Аудиопоток лучшего качества: yt-dlp пишет его в stdout, мы отдаём stdout как Readable. */
+  /**
+   * Аудиопоток лучшего качества: yt-dlp пишет его в stdout, мы отдаём stdout как Readable.
+   * Промис резолвится только когда пошли первые байты: если YouTube сразу отказал (403 и т.п.),
+   * ошибка уходит в discord-player как ошибка трека, а не теряется внутри уже запущенного потока.
+   */
   function createAudioStream(url) {
     const proc = doSpawn(
       [
@@ -91,17 +95,35 @@ function createYtDlp({ binaryPath = 'yt-dlp', cookiesPath = null, spawn } = {}) 
       if (!proc.killed) proc.kill('SIGKILL');
     });
 
-    proc.once('error', (err) => {
-      proc.stdout.emit('error', err);
-    });
-    proc.once('close', (code) => {
-      if (code !== 0 && code !== null) {
-        console.error(`[yt-dlp stream] код ${code}: ${stderr.slice(-500)}`);
-        proc.stdout.emit('error', new Error(`yt-dlp завершился с кодом ${code}: ${stderr.slice(-500)}`));
-      }
-    });
+    return new Promise((resolve, reject) => {
+      let started = false;
+      const fail = (error) => {
+        if (started) proc.stdout.emit('error', error);
+        else reject(error);
+      };
 
-    return proc.stdout;
+      // 'readable' не забирает данные из потока, в отличие от 'data'. Он же приходит
+      // и на конец пустого потока - тогда ждём close с кодом выхода.
+      const onReadable = () => {
+        if (!proc.stdout.readableLength) return;
+        proc.stdout.removeListener('readable', onReadable);
+        started = true;
+        resolve(proc.stdout);
+      };
+      proc.stdout.on('readable', onReadable);
+
+      proc.once('error', fail);
+      proc.once('close', (code) => {
+        proc.stdout.removeListener('readable', onReadable);
+        if (code !== 0 && code !== null) {
+          const reason = stderr.trim().split('\n').pop() || `код ${code}`;
+          console.error(`[yt-dlp stream] код ${code}: ${stderr.slice(-500)}`);
+          fail(new Error(`yt-dlp: ${reason.slice(0, 300)}`));
+        } else if (!started) {
+          fail(new Error('yt-dlp не вернул аудио'));
+        }
+      });
+    });
   }
 
   return { runJson, runJsonLines, createAudioStream };

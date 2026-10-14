@@ -2,7 +2,7 @@ const path = require('path');
 const { createHttpClient } = require('../core/http');
 const { createJsonFileStore } = require('../core/JsonFileStore');
 const { createWeatherService } = require('./weather/weatherService');
-const { createOpenDotaClient } = require('./dota/openDotaClient');
+const { createOpenDotaClient, openDotaHttpError } = require('./dota/openDotaClient');
 const { createSteamClient } = require('./dota/steamClient');
 const { createDotaService } = require('./dota/dotaService');
 const { createDotaAlert } = require('./dota/dotaAlert');
@@ -24,7 +24,10 @@ function createServices(config) {
   const weather = createWeatherService();
 
   const dota = createDotaService({
-    openDota: createOpenDotaClient(),
+    // OpenDota периодически отвечает 500 - повторяем, иначе пропадает ежедневная статистика.
+    openDota: createOpenDotaClient({
+      http: createHttpClient({ errorMessage: openDotaHttpError, timeoutMs: 15_000, retries: 3, retryDelayMs: 3000 }),
+    }),
     steam: createSteamClient({ apiKey: config.dota.steamApiKey }),
     timezone: config.dota.timezone,
   });

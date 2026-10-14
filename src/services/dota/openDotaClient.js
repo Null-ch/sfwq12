@@ -25,4 +25,4 @@ function createOpenDotaClient({ http = createHttpClient({ errorMessage: openDota
   };
 }
 
-module.exports = { createOpenDotaClient };
+module.exports = { openDotaHttpError, createOpenDotaClient };
